@@ -13,24 +13,24 @@ bool downButtonZ0 = false;
 bool downButtonZ1 = false;
 
 #define button1 5
-bool button1Z0 = false
-bool button1Z1 = false
+bool button1Z0 = false;
+bool button1Z1 = false;
 
 #define button2 6
-bool button2Z0 = false
-bool button2Z1 = false
+bool button2Z0 = false;
+bool button2Z1 = false;
 
 #define button3 7
-bool button3Z0 = false
-bool button3Z1 = false
+bool button3Z0 = false;
+bool button3Z1 = false;
 
 #define button4 8
-bool button4Z0 = false
-bool button4Z1 = false
+bool button4Z0 = false;
+bool button4Z1 = false;
 
 #define button5 9
-bool button5Z0 = false
-bool button5Z1 = false
+bool button5Z0 = false;
+bool button5Z1 = false;
 
 #define switch1 10
 #define switch2 11
@@ -201,6 +201,15 @@ void setup() {
   pinMode(selectButton, INPUT_PULLUP);
   pinMode(downButton, INPUT_PULLUP);
   pinMode(encoderButton, INPUT_PULLUP);
+  pinMode(button1, INPUT_PULLUP);
+  pinMode(button2, INPUT_PULLUP);
+  pinMode(button3, INPUT_PULLUP);
+  pinMode(button4, INPUT_PULLUP);
+  pinMode(button5, INPUT_PULLUP);
+  pinMode(switch1, INPUT_PULLUP);
+  pinMode(switch2, INPUT_PULLUP);
+  pinMode(switch3, INPUT_PULLUP);
+  pinMode(switch4, INPUT_PULLUP);
 
   u8g2.begin();
   u8g2.setFont(u8g2_font_5x8_mn);
@@ -300,6 +309,11 @@ void readInputData() {
   upButtonZ1 = upButtonZ0; upButtonZ0 = digitalRead(upButton);
   downButtonZ1 = downButtonZ0; downButtonZ0 = digitalRead(downButton);
   selectButtonZ1 = selectButtonZ0; selectButtonZ0 = digitalRead(selectButton);
+  button1Z1 = button1Z0; button1Z0 = digitalRead(button1);
+  button2Z1 = button2Z0; button2Z0 = digitalRead(button2);
+  button3Z1 = button3Z0; button3Z0 = digitalRead(button3);
+  button4Z1 = button4Z0; button4Z0 = digitalRead(button4);
+  button5Z1 = button5Z0; button5Z0 = digitalRead(button5);
 }
 
 void encoderFSM() {
