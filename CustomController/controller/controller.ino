@@ -166,7 +166,7 @@ enum EncoderStates {AB, Ab, aB, ab};
 EncoderStates encoderState;
 int encoderCounter = 0;
 
-enum States {home, menu};
+enum States {home, menu, config, gait, mode, animation};
 States state;
 
 void setup() {
@@ -185,34 +185,65 @@ void setup() {
 void loop() {
   readInputData();
   encoderFSM();
-
-  if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {
-    item_selected --;
-    if (item_selected < 0) item_selected = NUM_ITEMS - 1;
-  }
-
-  if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {
-    item_selected ++;
-    if (item_selected >= NUM_ITEMS) item_selected = 0;
-  }
-
-  if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {
-    if (item_selected == 3 && state == menu) state = home;
-    else if (state == home) state = menu;
-  }
-
-  item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = NUM_ITEMS - 1;
-  item_next = item_selected + 1;
-  if (item_next >= NUM_ITEMS) item_next = 0;
+  mainFSM();
 
   u8g2.firstPage();
   do {
     if (state == menu) menuPage();
     if (state == home) homePage();
-    
-
   } while ( u8g2.nextPage() );
+}
+
+void mainFSM() {
+  switch (state) {
+    case home:
+    if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {state = menu;}
+      //if button 1
+      //if button 2
+      //if button 3
+      //if button 4
+      break;
+    case menu:
+      if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = NUM_ITEMS - 1;}
+      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= NUM_ITEMS) item_selected = 0;}
+      if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {if (item_selected == 3 && state == menu) state = home;}
+
+      item_previous = item_selected - 1;
+      if (item_previous < 0) item_previous = NUM_ITEMS - 1;
+      item_next = item_selected + 1;
+      if (item_next >= NUM_ITEMS) item_next = 0;
+      //if button 1
+      //if button 2
+      //if button 3
+      //if button 4
+      break;
+    case config:
+      //if button 1
+      //if button 2
+      //if button 3
+      //if button 4
+      break;
+    case gait:
+      //if button 1
+      //if button 2
+      //if button 3
+      //if button 4
+      break;
+    case mode:
+      //if button 1
+      //if button 2
+      //if button 3
+      //if button 4
+      break;
+    case animation:
+      //if button 1
+      //if button 2
+      //if button 3
+      //if button 4
+      break;
+    default:
+      break;
+  }
 }
 
 void menuPage() {
