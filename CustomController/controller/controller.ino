@@ -1,18 +1,45 @@
 #include <U8g2lib.h>
 
 #define upButton 2
-#define selectButton 3
-#define downButton 4
-#define encoderA 13
-#define encoderB 12
-#define encoderButton 11
-
 bool upButtonZ0 = false;
-bool downButtonZ0 = false;
-bool selectButtonZ0 = false;
 bool upButtonZ1 = false;
-bool downButtonZ1 = false;
+
+#define selectButton 3
+bool selectButtonZ0 = false;
 bool selectButtonZ1 = false;
+
+#define downButton 4
+bool downButtonZ0 = false;
+bool downButtonZ1 = false;
+
+#define button1 5
+bool button1Z0 = false
+bool button1Z1 = false
+
+#define button2 6
+bool button2Z0 = false
+bool button2Z1 = false
+
+#define button3 7
+bool button3Z0 = false
+bool button3Z1 = false
+
+#define button4 8
+bool button4Z0 = false
+bool button4Z1 = false
+
+#define button5 9
+bool button5Z0 = false
+bool button5Z1 = false
+
+#define switch1 10
+#define switch2 11
+#define switch3 12
+#define switch4 13
+
+#define encoderA 14
+#define encoderB 15
+#define encoderButton 16
 
 U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 
