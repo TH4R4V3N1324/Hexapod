@@ -56,21 +56,30 @@ const unsigned char epd_bitmap_paw_icon [] PROGMEM = {
 	0x6c, 0x36, 0x6c, 0x00, 0x83, 0x01, 0xbb, 0x01, 0x7c, 0x00, 0xfe, 0x00, 0xfe, 0x00, 0x6c, 0x00
 };
 
-const int NUM_ITEMS = 4;
+// 'film_icon', 16x16px
+const unsigned char epd_bitmap_film_icon [] PROGMEM = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x6d, 0xdb, 0xff, 0xff, 0x24, 0x49, 0x24, 0x49, 
+	0x24, 0x49, 0x24, 0x49, 0xff, 0xff, 0x6d, 0xdb, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+
+const int NUM_ITEMS = 5;
 
 // Array of all bitmaps for convenience. (Total bytes used to store images in PROGMEM = 144)
 const unsigned char* icons[NUM_ITEMS] = {
 	epd_bitmap_cog_icon,
 	epd_bitmap_controller_icon,
 	epd_bitmap_paw_icon,
-  epd_bitmap_home_icon
+  epd_bitmap_home_icon,
+	epd_bitmap_film_icon
 };
 
 char menu_item[] [20] = {
   {"Config"},
 	{"Mode"},
 	{"Gait"},
-  {"Home Screen"}
+  {"Home Screen"},
+	{"Animation"}
 };
 
 int item_selected = 0;
