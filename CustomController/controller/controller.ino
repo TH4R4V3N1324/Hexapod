@@ -1,4 +1,9 @@
 #include <U8g2lib.h>
+#include <Wire.h>
+#include <SPI.h>
+
+//#define SDAPin 33
+//#define SCLPin 32
 
 #define upButton 2
 bool upButtonZ0 = false;
@@ -41,7 +46,11 @@ bool button5Z1 = false;
 #define encoderB 15
 #define encoderButton 16
 
-U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
+int stick1X = 0;
+int stick1Y = 0;
+
+U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
+//U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 
 // 'Hexapod_main_screen (2)', 128x64px
 const unsigned char epd_bitmap_Hexapod_main_screen [] PROGMEM = {
@@ -189,14 +198,25 @@ int item_selected = 0;
 int item_previous;
 int item_next;
 
-enum EncoderStates {AB, Ab, aB, ab};
-EncoderStates encoderState;
 int encoderCounter = 0;
+volatile bool lastA, lastB;
 
 enum States {home, menu, config, gait, mode, animation};
 States state;
 
+void IRAM_ATTR handleEncoderInterrupt() {
+  bool A = digitalRead(encoderA);
+  bool B = digitalRead(encoderB);
+
+  // Determine rotation direction
+  if (A != lastA) {if (A == B) encoderCounter ++; if (A != B) encoderCounter --;} 
+
+  lastA = A;
+  lastB = B;
+}
+
 void setup() {
+  //Wire.begin();
   pinMode(upButton, INPUT_PULLUP);
   pinMode(selectButton, INPUT_PULLUP);
   pinMode(downButton, INPUT_PULLUP);
@@ -211,6 +231,11 @@ void setup() {
   pinMode(switch3, INPUT_PULLUP);
   pinMode(switch4, INPUT_PULLUP);
 
+  lastA = digitalRead(encoderA);
+  lastB = digitalRead(encoderB);
+  attachInterrupt(digitalPinToInterrupt(encoderA), handleEncoderInterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB), handleEncoderInterrupt, CHANGE);
+
   u8g2.begin();
   u8g2.setFont(u8g2_font_5x8_mn);
   u8g2.setColorIndex(1);
@@ -220,7 +245,6 @@ void setup() {
 
 void loop() {
   readInputData();
-  encoderFSM();
   mainFSM();
 
   u8g2.firstPage();
@@ -305,37 +329,6 @@ void homePage() {
   u8g2.drawXBMP(0, 0, 128, 64, epd_bitmap_Hexapod_main_screen);
 }
 
-void encoderFSM() {
-  switch (encoderState) {
-    case AB:
-      if (!digitalRead(encoderA)) {encoderState = aB; encoderCounter ++;}
-      if (!digitalRead(encoderB)) {encoderState = Ab; encoderCounter --;}
-      break;
-    case aB:
-      if (!digitalRead(encoderB)) {encoderState = ab;}
-      if (digitalRead(encoderA)) {encoderState = AB;}
-      break;
-    case Ab:
-      if (digitalRead(encoderB)) {encoderState = AB;}
-      if (!digitalRead(encoderA)) {encoderState = ab;}
-      break;
-    case ab:
-      if (digitalRead(encoderA)) {encoderState = Ab;}
-      if (digitalRead(encoderB)) {encoderState = aB;}
-      break;
-    default:
-      printf("invalid state");
-      break;
-  }
-}
-
-void initializeEncoder() {
-  if (digitalRead(encoderA) && digitalRead(encoderB)) encoderState = AB;
-  if (!digitalRead(encoderA) && digitalRead(encoderB)) encoderState = aB;
-  if (digitalRead(encoderA) && !digitalRead(encoderB)) encoderState = Ab;
-  if (!digitalRead(encoderA) && !digitalRead(encoderB)) encoderState = ab;
-}
-
 void readInputData() {
   readButtonData();
   readStickData();
@@ -354,8 +347,8 @@ void readButtonData() {
 
 void readStickData() {
   // Read raw analog values (range 0–4095)
-  int xRaw = analogRead(VRX_PIN);
-  int yRaw = analogRead(VRY_PIN);
+  int xRaw = analogRead(stick1X);
+  int yRaw = analogRead(stick1Y);
 
   // Normalize to range -100 to 100 with deadzone
   int x = map(xRaw, 0, 4095, -127, 128);
