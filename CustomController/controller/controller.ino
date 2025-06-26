@@ -305,17 +305,6 @@ void homePage() {
   u8g2.drawXBMP(0, 0, 128, 64, epd_bitmap_Hexapod_main_screen);
 }
 
-void readInputData() {
-  upButtonZ1 = upButtonZ0; upButtonZ0 = digitalRead(upButton);
-  downButtonZ1 = downButtonZ0; downButtonZ0 = digitalRead(downButton);
-  selectButtonZ1 = selectButtonZ0; selectButtonZ0 = digitalRead(selectButton);
-  button1Z1 = button1Z0; button1Z0 = digitalRead(button1);
-  button2Z1 = button2Z0; button2Z0 = digitalRead(button2);
-  button3Z1 = button3Z0; button3Z0 = digitalRead(button3);
-  button4Z1 = button4Z0; button4Z0 = digitalRead(button4);
-  button5Z1 = button5Z0; button5Z0 = digitalRead(button5);
-}
-
 void encoderFSM() {
   switch (encoderState) {
     case AB:
@@ -345,4 +334,30 @@ void initializeEncoder() {
   if (!digitalRead(encoderA) && digitalRead(encoderB)) encoderState = aB;
   if (digitalRead(encoderA) && !digitalRead(encoderB)) encoderState = Ab;
   if (!digitalRead(encoderA) && !digitalRead(encoderB)) encoderState = ab;
+}
+
+void readInputData() {
+  readButtonData();
+  readStickData();
+}
+
+void readButtonData() {
+  upButtonZ1 = upButtonZ0; upButtonZ0 = digitalRead(upButton);
+  downButtonZ1 = downButtonZ0; downButtonZ0 = digitalRead(downButton);
+  selectButtonZ1 = selectButtonZ0; selectButtonZ0 = digitalRead(selectButton);
+  button1Z1 = button1Z0; button1Z0 = digitalRead(button1);
+  button2Z1 = button2Z0; button2Z0 = digitalRead(button2);
+  button3Z1 = button3Z0; button3Z0 = digitalRead(button3);
+  button4Z1 = button4Z0; button4Z0 = digitalRead(button4);
+  button5Z1 = button5Z0; button5Z0 = digitalRead(button5);
+}
+
+void readStickData() {
+  // Read raw analog values (range 0–4095)
+  int xRaw = analogRead(VRX_PIN);
+  int yRaw = analogRead(VRY_PIN);
+
+  // Normalize to range -100 to 100 with deadzone
+  int x = map(xRaw, 0, 4095, -127, 128);
+  int y = map(yRaw, 0, 4095, -127, 128);
 }
