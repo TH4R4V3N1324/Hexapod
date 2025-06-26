@@ -323,16 +323,16 @@ void encoderFSM() {
       if (!digitalRead(encoderB)) {encoderState = Ab; encoderCounter --;}
       break;
     case aB:
-      if (!digitalRead(encoderB)) {encoderState = ab; encoderCounter ++;}
-      if (digitalRead(encoderA)) {encoderState = AB; encoderCounter --;}
+      if (!digitalRead(encoderB)) {encoderState = ab;}
+      if (digitalRead(encoderA)) {encoderState = AB;}
       break;
     case Ab:
-      if (digitalRead(encoderB)) {encoderState = AB; encoderCounter ++;}
-      if (!digitalRead(encoderA)) {encoderState = ab; encoderCounter --;}
+      if (digitalRead(encoderB)) {encoderState = AB;}
+      if (!digitalRead(encoderA)) {encoderState = ab;}
       break;
     case ab:
-      if (digitalRead(encoderA)) {encoderState = Ab; encoderCounter ++;}
-      if (digitalRead(encoderB)) {encoderState = aB; encoderCounter --;}
+      if (digitalRead(encoderA)) {encoderState = Ab;}
+      if (digitalRead(encoderB)) {encoderState = aB;}
       break;
     default:
       printf("invalid state");
