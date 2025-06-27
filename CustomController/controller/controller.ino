@@ -109,6 +109,21 @@ char gait_item[] [20] = {
 	{"Ripple"}
 };
 
+enum Modes {strafe, normal, tilt};
+Modes activeMode = strafe;
+const int MODE_ITEMS = 3;
+const unsigned char* mode_icons[CONFIG_ITEMS] = {
+  epd_bitmap_strafe_mode_icon,
+  epd_bitmap_normal_mode_icon,
+  epd_bitmap_tilt_mode_icon
+};
+
+char mode_item[] [20] = {
+  {"Strafe"},
+	{"Normal"},
+	{"Tilt"}
+};
+
 int item_selected = 0;
 int item_previous;
 int item_next;
@@ -367,9 +382,9 @@ void legPage() {
   u8g2.drawXBMP(81, 24, 40, 24, epd_bitmap_leg_icon);
   u8g2.drawStr(26, 41, leg_item[item_selected]);
 
-  if (item_selected == 0) u8g2.drawXBMP(85, 37, 3, 3, epd_bitmap_joint_selected_icon);
-  if (item_selected == 1) u8g2.drawXBMP(96, 37, 3, 3, epd_bitmap_joint_selected_icon);
-  if (item_selected == 2) u8g2.drawXBMP(107, 26, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == coxa) u8g2.drawXBMP(85, 37, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == femur) u8g2.drawXBMP(96, 37, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == tibia) u8g2.drawXBMP(107, 26, 3, 3, epd_bitmap_joint_selected_icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
@@ -395,19 +410,54 @@ void gaitPage() {
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(15, 23, gait_item[item_previous]);
+  u8g2.drawStr(18, 23, gait_item[item_previous]);
   if (item_previous == activeGait) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(15, 41, gait_item[item_selected]);
+  u8g2.drawStr(18, 41, gait_item[item_selected]);
   if (item_selected == activeGait) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(15, 60, gait_item[item_next]);
+  u8g2.drawStr(18, 60, gait_item[item_next]);
   if (item_next == activeGait) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
+}
+
+//_______________________________________________________________________modePage__________________________________________________________________
+void modePage() {
+  item_previous = item_selected - 1;
+  if (item_previous < 0) item_previous = MODE_ITEMS - 1;
+
+  item_next = item_selected + 1;
+  if (item_next >= MODE_ITEMS) item_next = 0;
+
+  // Hexapod
+	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+
+	// Back button and nav
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 7, "Back");
+	u8g2.drawStr(29, 7, "Menu>Mode");
+
+  // Previous
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(18, 23, mode_item[item_previous]);
+  if (item_previous == activeMode) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
+
+  // Current
+  u8g2.setFont(u8g_font_7x14B); 
+	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
+  u8g2.drawStr(18, 41, mode_item[item_selected]);
+  u8g2.drawXBMP(82, 15, 42, 42, mode_icons[item_selected]);
+  if (item_selected == activeMode) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
+
+  // Next
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(18, 60, mode_item[item_next]);
+  if (item_next == activeMode) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
 }
 
 //_______________________________________________________________________readInputData__________________________________________________________________
