@@ -207,7 +207,55 @@ void menuPage() {
 }
 
 void homePage() {
-  u8g2.drawXBMP(0, 0, 128, 64, epd_bitmap_Hexapod_main_screen);
+	// Switch 1
+  u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(2, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawStr(9, 7, "SW1");
+
+	// Switch 2
+  u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(35, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawStr(42, 7, "SW2");
+
+	// Switch 3
+  u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(67, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawStr(74, 7, "SW3");
+
+	// Switch 4
+  u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(98, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawStr(105, 7, "SW4");
+
+	// Gait Button
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(1, 11, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 18, "Gait");
+	//u8g2.drawStr(36, 18, GaitValue);
+
+	// Mode Button
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(1, 22, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 29, "Mode");
+	//u8g2.drawStr(36, 29, ModeValue);
+
+	// Phase
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawStr(3, 40, "Phase");
+	//u8g2.drawStr(36, 40, PhaseValue);
+	
+	// Height
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawStr(3, 49, "Height");
+	//u8g2.drawStr(36, 49, "HeightValue");
+
+	// Menu Button
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(1, 53, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 60, "Menu");
+
+	// Hexapod
+	u8g2.drawXBMP(72, 12, 48, 48, epd_bitmap_hex_boarder);
 }
 
 void readInputData() {
