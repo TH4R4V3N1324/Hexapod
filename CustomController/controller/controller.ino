@@ -100,6 +100,15 @@ char leg_item[] [20] = {
 	{"Tibia"}
 };
 
+enum Gaits {tripod, wave, ripple};
+Gaits activeGait = wave; 
+const int GAIT_ITEMS = 3;
+char gait_item[] [20] = {
+  {"Tripod"},
+	{"Wave"},
+	{"Ripple"}
+};
+
 int item_selected = 0;
 int item_previous;
 int item_next;
@@ -365,6 +374,40 @@ void legPage() {
   // Next
   u8g2.setFont(u8g_font_7x14);
   u8g2.drawStr(26, 60, leg_item[item_next]);
+}
+
+//_______________________________________________________________________gaitPage__________________________________________________________________
+void gaitPage() {
+  item_previous = item_selected - 1;
+  if (item_previous < 0) item_previous = GAIT_ITEMS - 1;
+
+  item_next = item_selected + 1;
+  if (item_next >= GAIT_ITEMS) item_next = 0;
+
+  // Hexapod
+	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+
+	// Back button and nav
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 7, "Back");
+	u8g2.drawStr(29, 7, "Menu>Gait");
+
+  // Previous
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(15, 23, gait_item[item_previous]);
+  if (item_previous == activeGait) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
+
+  // Current
+  u8g2.setFont(u8g_font_7x14B); 
+	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
+  u8g2.drawStr(15, 41, gait_item[item_selected]);
+  if (item_selected == activeGait) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
+
+  // Next
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(15, 60, gait_item[item_next]);
+  if (item_next == activeGait) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
 }
 
 //_______________________________________________________________________readInputData__________________________________________________________________
