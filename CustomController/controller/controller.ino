@@ -188,22 +188,33 @@ void mainFSM() {
 }
 
 void menuPage() {
-  u8g2.drawXBMP(0, 22, 128, 21, epd_bitmap_selected_outline);
+	item_previous = item_selected - 1;
+  if (item_previous < 0) item_previous = NUM_ITEMS - 1;
+
+  item_next = item_selected + 1;
+  if (item_next >= NUM_ITEMS) item_next = 0;
+
+	// Back button and nav
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 7, "Back");
+	u8g2.drawStr(29, 7, "Menu");
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 15, menu_item[item_previous]);
-  u8g2.drawXBMP(4, 2, 16, 16, icons[item_previous]);
+  u8g2.drawStr(26, 23, menu_item[item_previous]);
+  u8g2.drawXBMP(4, 10, 16, 16, icons[item_previous]);
 
   // Current
-  u8g2.setFont(u8g_font_7x14B);
-  u8g2.drawStr(26, 37, menu_item[item_selected]);
-  u8g2.drawXBMP(4, 24, 16, 16, icons[item_selected]);
+  u8g2.setFont(u8g_font_7x14B); 
+	u8g2.drawXBMP(1, 27, 126, 20, epd_bitmap_selection_boarder);
+  u8g2.drawStr(26, 41, menu_item[item_selected]);
+  u8g2.drawXBMP(4, 28, 16, 16, icons[item_selected]);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 59, menu_item[item_next]);
-  u8g2.drawXBMP(4, 46, 16, 16, icons[item_next]);
+  u8g2.drawStr(26, 60, menu_item[item_next]);
+  u8g2.drawXBMP(4, 47, 16, 16, icons[item_next]);
 }
 
 void homePage() {
