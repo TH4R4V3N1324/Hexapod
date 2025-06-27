@@ -93,6 +93,13 @@ char config_item[] [20] = {
   {"Leg6"}
 };
 
+const int LEG_ITEMS = 3;
+char leg_item[] [20] = {
+  {"Coxa"},
+	{"Femur"},
+	{"Tibia"}
+};
+
 int item_selected = 0;
 int item_previous;
 int item_next;
@@ -114,6 +121,7 @@ void IRAM_ATTR handleEncoderInterrupt() {
   lastB = B;
 }
 
+//_______________________________________________________________________setup__________________________________________________________________
 void setup() {
   //Wire.begin();
   pinMode(upButton, INPUT_PULLUP);
@@ -142,6 +150,7 @@ void setup() {
   state = home;
 }
 
+//_______________________________________________________________________loop__________________________________________________________________
 void loop() {
   readInputData();
   mainFSM();
@@ -153,6 +162,7 @@ void loop() {
   } while ( u8g2.nextPage() );
 }
 
+//_______________________________________________________________________mainFSM__________________________________________________________________
 void mainFSM() {
   switch (state) {
     case home:
@@ -205,6 +215,7 @@ void mainFSM() {
   }
 }
 
+//_______________________________________________________________________menuPage__________________________________________________________________
 void menuPage() {
 	item_previous = item_selected - 1;
   if (item_previous < 0) item_previous = MENU_ITEMS - 1;
@@ -235,6 +246,7 @@ void menuPage() {
   u8g2.drawXBMP(4, 47, 16, 16, menu_icons[item_next]);
 }
 
+//_______________________________________________________________________homePage__________________________________________________________________
 void homePage() {
 	// Switch 1
   u8g2.setFont(u8g2_font_4x6_mf);
@@ -287,6 +299,7 @@ void homePage() {
 	u8g2.drawXBMP(72, 12, 48, 48, epd_bitmap_hex_boarder);
 }
 
+//_______________________________________________________________________configPage__________________________________________________________________
 void configPage() {
   item_previous = item_selected - 1;
   if (item_previous < 0) item_previous = CONFIG_ITEMS - 1;
@@ -318,11 +331,49 @@ void configPage() {
   u8g2.drawStr(26, 60, config_item[item_next]);
 }
 
+//_______________________________________________________________________legPage__________________________________________________________________
+void legPage() {
+  item_previous = item_selected - 1;
+  if (item_previous < 0) item_previous = LEG_ITEMS - 1;
+
+  item_next = item_selected + 1;
+  if (item_next >= LEG_ITEMS) item_next = 0;
+
+  // Hexapod
+	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+
+	// Back button and nav
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 7, "Back");
+	u8g2.drawStr(29, 7, "Menu>Config>Leg?");
+
+  // Previous
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(26, 23, leg_item[item_previous]);
+
+  // Current
+  u8g2.setFont(u8g_font_7x14B); 
+	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
+  u8g2.drawXBMP(81, 24, 40, 24, epd_bitmap_leg_icon);
+  u8g2.drawStr(26, 41, leg_item[item_selected]);
+
+  if (item_selected == 0) u8g2.drawXBMP(85, 37, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == 1) u8g2.drawXBMP(96, 37, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == 2) u8g2.drawXBMP(107, 26, 3, 3, epd_bitmap_joint_selected_icon);
+
+  // Next
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(26, 60, leg_item[item_next]);
+}
+
+//_______________________________________________________________________readInputData__________________________________________________________________
 void readInputData() {
   readButtonData();
   readStickData();
 }
 
+//_______________________________________________________________________readButtonData__________________________________________________________________
 void readButtonData() {
   upButtonZ1 = upButtonZ0; upButtonZ0 = digitalRead(upButton);
   downButtonZ1 = downButtonZ0; downButtonZ0 = digitalRead(downButton);
@@ -334,6 +385,7 @@ void readButtonData() {
   button5Z1 = button5Z0; button5Z0 = digitalRead(button5);
 }
 
+//_______________________________________________________________________readStickData__________________________________________________________________
 void readStickData() {
   // Read raw analog values (range 0–4095)
   int xRaw = analogRead(stick1X);
