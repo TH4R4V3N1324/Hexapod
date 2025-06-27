@@ -56,10 +56,9 @@ bool button5Z1 = false;
 U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 
-const int NUM_ITEMS = 5;
-
 // Array of all bitmaps for convenience. (Total bytes used to store images in PROGMEM = 144)
-const unsigned char* icons[NUM_ITEMS] = {
+const int MENU_ITEMS = 5;
+const unsigned char* menu_icons[MENU_ITEMS] = {
 	epd_bitmap_cog_icon,
 	epd_bitmap_controller_icon,
 	epd_bitmap_paw_icon,
@@ -73,6 +72,25 @@ char menu_item[] [20] = {
 	{"Gait"},
   {"Home Screen"},
 	{"Animation"}
+};
+
+const int CONFIG_ITEMS = 6;
+const unsigned char* config_icons[CONFIG_ITEMS] = {
+  epd_bitmap_leg1_icon,
+  epd_bitmap_leg2_icon,
+  epd_bitmap_leg3_icon,
+  epd_bitmap_leg4_icon,
+  epd_bitmap_leg5_icon,
+  epd_bitmap_leg6_icon
+};
+
+char config_item[] [20] = {
+  {"Leg1"},
+	{"Leg2"},
+	{"Leg3"},
+  {"Leg4"},
+	{"Leg5"},
+  {"Leg6"}
 };
 
 int item_selected = 0;
@@ -189,10 +207,10 @@ void mainFSM() {
 
 void menuPage() {
 	item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = NUM_ITEMS - 1;
+  if (item_previous < 0) item_previous = MENU_ITEMS - 1;
 
   item_next = item_selected + 1;
-  if (item_next >= NUM_ITEMS) item_next = 0;
+  if (item_next >= MENU_ITEMS) item_next = 0;
 
 	// Back button and nav
 	u8g2.setFont(u8g2_font_4x6_mf);
@@ -203,18 +221,18 @@ void menuPage() {
   // Previous
   u8g2.setFont(u8g_font_7x14);
   u8g2.drawStr(26, 23, menu_item[item_previous]);
-  u8g2.drawXBMP(4, 10, 16, 16, icons[item_previous]);
+  u8g2.drawXBMP(4, 10, 16, 16, menu_icons[item_previous]);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 126, 20, epd_bitmap_selection_boarder);
   u8g2.drawStr(26, 41, menu_item[item_selected]);
-  u8g2.drawXBMP(4, 28, 16, 16, icons[item_selected]);
+  u8g2.drawXBMP(4, 28, 16, 16, menu_icons[item_selected]);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
   u8g2.drawStr(26, 60, menu_item[item_next]);
-  u8g2.drawXBMP(4, 47, 16, 16, icons[item_next]);
+  u8g2.drawXBMP(4, 47, 16, 16, menu_icons[item_next]);
 }
 
 void homePage() {
@@ -271,10 +289,10 @@ void homePage() {
 
 void configPage() {
   item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = NUM_ITEMS - 1;
+  if (item_previous < 0) item_previous = CONFIG_ITEMS - 1;
 
   item_next = item_selected + 1;
-  if (item_next >= NUM_ITEMS) item_next = 0;
+  if (item_next >= CONFIG_ITEMS) item_next = 0;
 
 	// Back button and nav
 	u8g2.setFont(u8g2_font_4x6_mf);
@@ -282,24 +300,22 @@ void configPage() {
   u8g2.drawStr(5, 7, "Back");
 	u8g2.drawStr(29, 7, "Menu>Config");
 
+  // Hexapod
+	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, menu_item[item_previous]);
-  u8g2.drawXBMP(4, 10, 16, 16, icons[item_previous]);
+  u8g2.drawStr(26, 23, config_item[item_previous]);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(26, 41, menu_item[item_selected]);
-  u8g2.drawXBMP(4, 28, 16, 16, icons[item_selected]);
+  u8g2.drawStr(26, 41, config_item[item_selected]);
+  u8g2.drawXBMP(88, 18, 30, 37, config_icons[item_selected]);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, menu_item[item_next]);
-  u8g2.drawXBMP(4, 47, 16, 16, icons[item_next]);
-
-  // Hexapod
-	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+  u8g2.drawStr(26, 60, config_item[item_next]);
 }
 
 void readInputData() {
