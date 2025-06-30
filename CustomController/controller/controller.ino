@@ -225,6 +225,7 @@ void mainFSM() {
 			break;
 		case STATE_LEG:
 			handleScrollAndSelect(LEG, LEG_ITEMS);
+      break;
 		case STATE_GAIT:
 			handleScrollAndSelect(GAIT, GAIT_ITEMS, false);
 			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeGait = static_cast<Gaits>(item_selected);}
