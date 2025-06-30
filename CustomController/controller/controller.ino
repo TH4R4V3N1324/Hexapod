@@ -228,13 +228,13 @@ void mainFSM() {
 			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
 			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = GAIT_ITEMS - 1;}
       if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= GAIT_ITEMS) item_selected = 0;}
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = GAIT[item_selected].destination;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeGait = static_cast<Gaits>(item_selected);}
 			break;
 		case STATE_MODE:
 			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
 			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = MODE_ITEMS - 1;}
       if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= MODE_ITEMS) item_selected = 0;}
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = MODE[item_selected].destination;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeMode = static_cast<Modes>(item_selected);}
 			break;
 		default:
 			break;
