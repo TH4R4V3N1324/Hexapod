@@ -53,6 +53,8 @@ bool button5Z1 = false;
 #define encoderB 15
 #define encoderButton 16
 
+#define STATE_STACK_MAX 10
+
 enum States {
 	STATE_NONE,
 	STATE_HOME,
@@ -64,6 +66,8 @@ enum States {
 	STATE_LEG
 	};
 
+States stateStack[STATE_STACK_MAX];
+int stackTop = -1;
 States state;
 
 struct page {
@@ -127,6 +131,7 @@ int item_next;
 int encoderCounter = 0;
 volatile bool lastA, lastB;
 
+/*
 void IRAM_ATTR handleEncoderInterrupt() {
   bool A = digitalRead(encoderA);
   bool B = digitalRead(encoderB);
@@ -137,6 +142,7 @@ void IRAM_ATTR handleEncoderInterrupt() {
   lastA = A;
   lastB = B;
 }
+*/
 
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
@@ -157,80 +163,84 @@ void setup() {
 
   lastA = digitalRead(encoderA);
   lastB = digitalRead(encoderB);
-  attachInterrupt(digitalPinToInterrupt(encoderA), handleEncoderInterrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encoderB), handleEncoderInterrupt, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(encoderA), handleEncoderInterrupt, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(encoderB), handleEncoderInterrupt, CHANGE);
 
   u8g2.begin();
   u8g2.setFont(u8g2_font_5x8_mn);
   u8g2.setColorIndex(1);
 
-  state = home;
+  state = STATE_HOME;
 }
 
 //_______________________________________________________________________loop__________________________________________________________________
 void loop() {
   readInputData();
-  mainFSM();
-
+	mainFSM();
   u8g2.firstPage();
   do {
-    if (state == menu) menuPage();
-    if (state == home) homePage();
+		if (state == STATE_HOME) homePage();
+		if (state == STATE_MENU) menuPage();
+		if (state == STATE_CONFIG) configPage();
+		if (state == STATE_LEG) legPage();
+		if (state == STATE_GAIT) gaitPage();
+		if (state == STATE_MODE) modePage();
+		//if (state == STATE_ANIMATION) animationPage();
   } while ( u8g2.nextPage() );
+}
+
+//_______________________________________________________________________pushState__________________________________________________________________
+void pushState(States s) {
+	if (stackTop < STATE_STACK_MAX - 1) {stateStack[++stackTop] = s;}
+}
+
+//_______________________________________________________________________popState__________________________________________________________________
+States popState() {
+	if (stackTop >= 0) {return stateStack[stackTop--];}
+	return STATE_HOME; // fallback if stack is empty
 }
 
 //_______________________________________________________________________mainFSM__________________________________________________________________
 void mainFSM() {
-  switch (state) {
-    case home:
-    if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {state = menu;}
-      //if button 1
-      //if button 2
-      //if button 3
-      //if button 4
-      break;
-    case menu:
-      if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = NUM_ITEMS - 1;}
-      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= NUM_ITEMS) item_selected = 0;}
-      if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {if (item_selected == 3 && state == menu) state = home;}
-
-      item_previous = item_selected - 1;
-      if (item_previous < 0) item_previous = NUM_ITEMS - 1;
-      item_next = item_selected + 1;
-      if (item_next >= NUM_ITEMS) item_next = 0;
-      //if button 1
-      //if button 2
-      //if button 3
-      //if button 4
-      break;
-    case config:
-      //if button 1
-      //if button 2
-      //if button 3
-      //if button 4
-      break;
-    case gait:
-      //if button 1
-      //if button 2
-      //if button 3
-      //if button 4
-      break;
-    case mode:
-      //if button 1
-      //if button 2
-      //if button 3
-      //if button 4
-      break;
-    case animation:
-      //if button 1
-      //if button 2
-      //if button 3
-      //if button 4
-      break;
-    default:
-      break;
-  }
+	switch (state) {
+		case STATE_HOME:
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state);; state = STATE_MENU;}
+			break;
+		case STATE_MENU:
+			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = MENU_ITEMS - 1;}
+      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= MENU_ITEMS) item_selected = 0;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = MENU[item_selected].destination;}
+			break;
+		case STATE_CONFIG:
+			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = CONFIG_ITEMS - 1;}
+      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= CONFIG_ITEMS) item_selected = 0;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = CONFIG[item_selected].destination;}
+			break;
+		case STATE_LEG:
+			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = LEG_ITEMS - 1;}
+      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= LEG_ITEMS) item_selected = 0;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = LEG[item_selected].destination;}
+			break;
+		case STATE_GAIT:
+			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = GAIT_ITEMS - 1;}
+      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= GAIT_ITEMS) item_selected = 0;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = GAIT[item_selected].destination;}
+			break;
+		case STATE_MODE:
+			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = MODE_ITEMS - 1;}
+      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= MODE_ITEMS) item_selected = 0;}
+			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = MODE[item_selected].destination;}
+			break;
+		default:
+			break;
+	}
 }
+
 
 //_______________________________________________________________________menuPage__________________________________________________________________
 void menuPage() {
