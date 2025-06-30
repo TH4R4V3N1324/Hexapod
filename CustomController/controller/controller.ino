@@ -53,6 +53,25 @@ bool button5Z1 = false;
 #define encoderB 15
 #define encoderButton 16
 
+enum States {
+	STATE_NONE,
+	STATE_HOME,
+	STATE_MENU,
+	STATE_CONFIG,
+	STATE_GAIT,
+	STATE_MODE,
+	STATE_ANIMATION,
+	STATE_LEG
+	};
+
+States state;
+
+struct page {
+	char* item;
+	const unsigned char* icon;
+	States destination;
+};
+
 U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 
@@ -107,9 +126,6 @@ int item_next;
 
 int encoderCounter = 0;
 volatile bool lastA, lastB;
-
-enum States {home, menu, config, gait, mode, animation};
-States state;
 
 void IRAM_ATTR handleEncoderInterrupt() {
   bool A = digitalRead(encoderA);
