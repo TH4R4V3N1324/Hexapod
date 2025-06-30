@@ -200,6 +200,15 @@ States popState() {
 	return STATE_HOME; // fallback if stack is empty
 }
 
+//______________________________________________________________________handleScrollAndSelect_________________________________________________________
+void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) {
+	if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+	if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = itemCount - 1;}
+  if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= itemCount) item_selected = 0;}
+	if(!destination) {return;}
+	if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = pages[item_selected].destination;}
+}
+
 //_______________________________________________________________________mainFSM__________________________________________________________________
 void mainFSM() {
 	switch (state) {
@@ -207,33 +216,19 @@ void mainFSM() {
 			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state);; state = STATE_MENU;}
 			break;
 		case STATE_MENU:
-			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = MENU_ITEMS - 1;}
-      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= MENU_ITEMS) item_selected = 0;}
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = MENU[item_selected].destination;}
+			handleScrollAndSelect(MENU, MENU_ITEMS);
 			break;
 		case STATE_CONFIG:
-			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = CONFIG_ITEMS - 1;}
-      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= CONFIG_ITEMS) item_selected = 0;}
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = CONFIG[item_selected].destination;}
+			handleScrollAndSelect(CONFIG, CONFIG_ITEMS);
 			break;
 		case STATE_LEG:
-			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = LEG_ITEMS - 1;}
-      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= LEG_ITEMS) item_selected = 0;}
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = LEG[item_selected].destination;}
-			break;
+			handleScrollAndSelect(LEG, LEG_ITEMS);
 		case STATE_GAIT:
-			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = GAIT_ITEMS - 1;}
-      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= GAIT_ITEMS) item_selected = 0;}
+			handleScrollAndSelect(GAIT, GAIT_ITEMS, false);
 			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeGait = static_cast<Gaits>(item_selected);}
 			break;
 		case STATE_MODE:
-			if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-			if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = MODE_ITEMS - 1;}
-      if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= MODE_ITEMS) item_selected = 0;}
+			handleScrollAndSelect(MODE, MODE_ITEMS, false);
 			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeMode = static_cast<Modes>(item_selected);}
 			break;
 		default:
