@@ -107,7 +107,7 @@ page LEG[LEG_ITEMS] = {
 };
 
 enum Gaits {tripod, wave, ripple};
-Gaits activeGait = wave; 
+Gaits activeGait = tripod; 
 const int GAIT_ITEMS = 3;
 page GAIT[GAIT_ITEMS] = {
 	{"Tripod", nullptr, STATE_NONE},
@@ -116,7 +116,7 @@ page GAIT[GAIT_ITEMS] = {
 };
 
 enum Modes {strafe, normal, tilt};
-Modes activeMode = strafe;
+Modes activeMode = normal;
 const int MODE_ITEMS = 3;
 page MODE[MODE_ITEMS] = {
   {"Strafe", epd_bitmap_strafe_mode_icon, STATE_NONE},
@@ -294,13 +294,13 @@ void homePage() {
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawXBMP(1, 11, 26, 10, epd_bitmap_button_boarder);
   u8g2.drawStr(5, 18, "Gait");
-	//u8g2.drawStr(36, 18, GaitValue);
+	u8g2.drawStr(36, 18, GAIT[static_cast<int>(activeGait)].item);
 
 	// Mode Button
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawXBMP(1, 22, 26, 10, epd_bitmap_button_boarder);
   u8g2.drawStr(5, 29, "Mode");
-	//u8g2.drawStr(36, 29, ModeValue);
+	u8g2.drawStr(36, 29, MODE[static_cast<int>(activeMode)].item);
 
 	// Phase
 	u8g2.setFont(u8g2_font_4x6_mf);
