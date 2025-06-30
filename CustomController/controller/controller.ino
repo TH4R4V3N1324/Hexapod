@@ -56,72 +56,49 @@ bool button5Z1 = false;
 U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 
-// Array of all bitmaps for convenience. (Total bytes used to store images in PROGMEM = 144)
 const int MENU_ITEMS = 5;
-const unsigned char* menu_icons[MENU_ITEMS] = {
-	epd_bitmap_cog_icon,
-	epd_bitmap_controller_icon,
-	epd_bitmap_paw_icon,
-  epd_bitmap_home_icon,
-	epd_bitmap_film_icon
-};
-
-char menu_item[] [20] = {
-  {"Config"},
-	{"Mode"},
-	{"Gait"},
-  {"Home Screen"},
-	{"Animation"}
+page MENU[MENU_ITEMS] = {
+	{"Config", epd_bitmap_cog_icon, STATE_CONFIG},
+	{"Mode", epd_bitmap_controller_icon, STATE_MODE},
+	{"Gait", epd_bitmap_paw_icon, STATE_GAIT},
+  {"Home Screen", epd_bitmap_home_icon, STATE_HOME},
+	{"Animation", epd_bitmap_film_icon, STATE_ANIMATION}
 };
 
 const int CONFIG_ITEMS = 6;
-const unsigned char* config_icons[CONFIG_ITEMS] = {
-  epd_bitmap_leg1_icon,
-  epd_bitmap_leg2_icon,
-  epd_bitmap_leg3_icon,
-  epd_bitmap_leg4_icon,
-  epd_bitmap_leg5_icon,
-  epd_bitmap_leg6_icon
+page CONFIG[CONFIG_ITEMS] = {
+  {"Leg1", epd_bitmap_leg1_icon, STATE_LEG},
+	{"Leg2", epd_bitmap_leg2_icon, STATE_LEG},
+	{"Leg3", epd_bitmap_leg3_icon, STATE_LEG},
+  {"Leg4", epd_bitmap_leg4_icon, STATE_LEG},
+	{"Leg5", epd_bitmap_leg5_icon, STATE_LEG},
+  {"Leg6", epd_bitmap_leg6_icon, STATE_LEG}
 };
 
-char config_item[] [20] = {
-  {"Leg1"},
-	{"Leg2"},
-	{"Leg3"},
-  {"Leg4"},
-	{"Leg5"},
-  {"Leg6"}
-};
-
+enum Joints {coxa, femur, tibia};
 const int LEG_ITEMS = 3;
-char leg_item[] [20] = {
-  {"Coxa"},
-	{"Femur"},
-	{"Tibia"}
+page LEG[LEG_ITEMS] = {
+	{"Coxa", epd_bitmap_joint_selected_icon, STATE_NONE},
+	{"Femur", epd_bitmap_joint_selected_icon, STATE_NONE},
+	{"Tibia", epd_bitmap_joint_selected_icon, STATE_NONE}
 };
 
 enum Gaits {tripod, wave, ripple};
 Gaits activeGait = wave; 
 const int GAIT_ITEMS = 3;
-char gait_item[] [20] = {
-  {"Tripod"},
-	{"Wave"},
-	{"Ripple"}
+page GAIT[GAIT_ITEMS] = {
+	{"Tripod", nullptr, STATE_NONE},
+	{"Wave", nullptr, STATE_NONE},
+	{"Ripple", nullptr, STATE_NONE}
 };
 
 enum Modes {strafe, normal, tilt};
 Modes activeMode = strafe;
 const int MODE_ITEMS = 3;
-const unsigned char* mode_icons[CONFIG_ITEMS] = {
-  epd_bitmap_strafe_mode_icon,
-  epd_bitmap_normal_mode_icon,
-  epd_bitmap_tilt_mode_icon
-};
-
-char mode_item[] [20] = {
-  {"Strafe"},
-	{"Normal"},
-	{"Tilt"}
+page MODE[MODE_ITEMS] = {
+  {"Strafe", epd_bitmap_strafe_mode_icon, STATE_NONE},
+	{"Normal", epd_bitmap_normal_mode_icon, STATE_NONE},
+	{"Tilt", epd_bitmap_tilt_mode_icon, STATE_NONE}	
 };
 
 int item_selected = 0;
@@ -255,19 +232,19 @@ void menuPage() {
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, menu_item[item_previous]);
-  u8g2.drawXBMP(4, 10, 16, 16, menu_icons[item_previous]);
+  u8g2.drawStr(26, 23, MENU[item_previous].item);
+  u8g2.drawXBMP(4, 10, 16, 16, MENU[item_previous].icon);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 126, 20, epd_bitmap_selection_boarder);
-  u8g2.drawStr(26, 41, menu_item[item_selected]);
-  u8g2.drawXBMP(4, 28, 16, 16, menu_icons[item_selected]);
+  u8g2.drawStr(26, 41, MENU[item_selected].item);
+  u8g2.drawXBMP(4, 28, 16, 16, MENU[item_selected].icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, menu_item[item_next]);
-  u8g2.drawXBMP(4, 47, 16, 16, menu_icons[item_next]);
+  u8g2.drawStr(26, 60, MENU[item_next].item);
+  u8g2.drawXBMP(4, 47, 16, 16, MENU[item_next].icon);
 }
 
 //_______________________________________________________________________homePage__________________________________________________________________
@@ -342,17 +319,17 @@ void configPage() {
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, config_item[item_previous]);
+  u8g2.drawStr(26, 23, CONFIG[item_previous].item);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(26, 41, config_item[item_selected]);
-  u8g2.drawXBMP(88, 18, 30, 37, config_icons[item_selected]);
+  u8g2.drawStr(26, 41, CONFIG[item_selected].item);
+  u8g2.drawXBMP(88, 18, 30, 37, CONFIG[item_selected].icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, config_item[item_next]);
+  u8g2.drawStr(26, 60, CONFIG[item_next].item);
 }
 
 //_______________________________________________________________________legPage__________________________________________________________________
@@ -374,21 +351,21 @@ void legPage() {
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, leg_item[item_previous]);
+  u8g2.drawStr(26, 23, LEG[item_previous].item);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
   u8g2.drawXBMP(81, 24, 40, 24, epd_bitmap_leg_icon);
-  u8g2.drawStr(26, 41, leg_item[item_selected]);
+  u8g2.drawStr(26, 41, LEG[item_selected].item);
 
-  if (item_selected == coxa) u8g2.drawXBMP(85, 37, 3, 3, epd_bitmap_joint_selected_icon);
-  if (item_selected == femur) u8g2.drawXBMP(96, 37, 3, 3, epd_bitmap_joint_selected_icon);
-  if (item_selected == tibia) u8g2.drawXBMP(107, 26, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == coxa) u8g2.drawXBMP(85, 37, 3, 3, LEG[item_selected].icon);
+  if (item_selected == femur) u8g2.drawXBMP(96, 37, 3, 3, LEG[item_selected].icon);
+  if (item_selected == tibia) u8g2.drawXBMP(107, 26, 3, 3, LEG[item_selected].icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, leg_item[item_next]);
+  u8g2.drawStr(26, 60, LEG[item_next].item);
 }
 
 //_______________________________________________________________________gaitPage__________________________________________________________________
@@ -410,18 +387,18 @@ void gaitPage() {
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 23, gait_item[item_previous]);
+  u8g2.drawStr(18, 23, GAIT[item_previous].item);
   if (item_previous == activeGait) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(18, 41, gait_item[item_selected]);
+  u8g2.drawStr(18, 41, GAIT[item_selected].item);
   if (item_selected == activeGait) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 60, gait_item[item_next]);
+  u8g2.drawStr(18, 60, GAIT[item_next].item);
   if (item_next == activeGait) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
 }
 
@@ -444,19 +421,19 @@ void modePage() {
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 23, mode_item[item_previous]);
+  u8g2.drawStr(18, 23, MODE[item_previous].item);
   if (item_previous == activeMode) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
 
   // Current
   u8g2.setFont(u8g_font_7x14B); 
 	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(18, 41, mode_item[item_selected]);
-  u8g2.drawXBMP(82, 15, 42, 42, mode_icons[item_selected]);
+  u8g2.drawStr(18, 41, MODE[item_selected].item);
+  u8g2.drawXBMP(82, 15, 42, 42, MODE[item_selected].icon);
   if (item_selected == activeMode) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
 
   // Next
   u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 60, mode_item[item_next]);
+  u8g2.drawStr(18, 60, MODE[item_next].item);
   if (item_next == activeMode) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
 }
 
