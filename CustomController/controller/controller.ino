@@ -131,8 +131,8 @@ int item_next;
 int encoderCounter = 0;
 volatile bool lastA, lastB;
 
-/*
-void IRAM_ATTR handleEncoderInterrupt() {
+
+void handleEncoderInterrupt() {
   bool A = digitalRead(encoderA);
   bool B = digitalRead(encoderB);
 
@@ -142,7 +142,7 @@ void IRAM_ATTR handleEncoderInterrupt() {
   lastA = A;
   lastB = B;
 }
-*/
+
 
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
@@ -163,8 +163,8 @@ void setup() {
 
   lastA = digitalRead(encoderA);
   lastB = digitalRead(encoderB);
-  //attachInterrupt(digitalPinToInterrupt(encoderA), handleEncoderInterrupt, CHANGE);
-  //attachInterrupt(digitalPinToInterrupt(encoderB), handleEncoderInterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderA), handleEncoderInterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB), handleEncoderInterrupt, CHANGE);
 
   u8g2.begin();
   u8g2.setFont(u8g2_font_5x8_mn);
@@ -274,22 +274,22 @@ void menuPage() {
 void homePage() {
 	// Switch 1
   u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(2, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawXBMP(2, 1, 5, 7, (digitalRead(switch1) ? epd_bitmap_switch_up_icon : epd_bitmap_switch_down_icon));
   u8g2.drawStr(9, 7, "SW1");
 
 	// Switch 2
   u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(35, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawXBMP(35, 1, 5, 7, (digitalRead(switch2) ? epd_bitmap_switch_up_icon : epd_bitmap_switch_down_icon));
   u8g2.drawStr(42, 7, "SW2");
 
 	// Switch 3
   u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(67, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawXBMP(67, 1, 5, 7, (digitalRead(switch3) ? epd_bitmap_switch_up_icon : epd_bitmap_switch_down_icon));
   u8g2.drawStr(74, 7, "SW3");
 
 	// Switch 4
   u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(98, 1, 5, 7, epd_bitmap_switch_up_icon);
+  u8g2.drawXBMP(98, 1, 5, 7, (digitalRead(switch4) ? epd_bitmap_switch_up_icon : epd_bitmap_switch_down_icon));
   u8g2.drawStr(105, 7, "SW4");
 
 	// Gait Button
