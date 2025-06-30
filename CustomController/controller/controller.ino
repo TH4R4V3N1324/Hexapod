@@ -213,6 +213,8 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
+      if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
+			if((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
 			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state);; state = STATE_MENU;}
 			break;
 		case STATE_MENU:
