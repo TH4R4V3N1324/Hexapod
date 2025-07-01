@@ -111,7 +111,11 @@ int item_next;
 
 volatile int encoderCount = 0;
 int lastEncoderCount = 0;
+int encoderDelta = 0;
 volatile bool lastA, lastB;
+
+int currentPhase = 0;
+int currentHeight = 100;
 
 void handleEncoderInterrupt() {
   bool A = digitalRead(encoderA);
@@ -187,6 +191,8 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
+      if(encoderDelta >= 2) {currentHeight --; lastEncoderCount += 2;}
+  		if(encoderDelta <= -2) {currentHeight ++; lastEncoderCount -= 2;}
 			if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
 			if((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
 			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); lastEncoderCount = encoderCount; state = STATE_MENU;}
@@ -298,12 +304,16 @@ void homePage() {
 	// Phase
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawStr(3, 40, "Phase");
-	//u8g2.drawStr(36, 40, PhaseValue);
+	char currentPhaseStr[3];
+	sprintf(currentPhaseStr, "%d", currentPhase);
+	u8g2.drawStr(36, 40, currentPhaseStr);
 	
 	// Height
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawStr(3, 49, "Height");
-	//u8g2.drawStr(36, 49, "HeightValue");
+	char currentHeightStr[3];
+	sprintf(currentHeightStr, "%d", currentHeight);
+	u8g2.drawStr(36, 49, currentHeightStr);
 
 	// Menu Button
 	u8g2.setFont(u8g2_font_4x6_mf);
@@ -357,6 +367,7 @@ void modePage() {
 
 //_______________________________________________________________________readInputData__________________________________________________________________
 void readInputData() {
+  encoderDelta = encoderCount - lastEncoderCount;
   readButtonData();
   readStickData();
 }
