@@ -12,18 +12,6 @@
 #define stick1X 19
 #define stick1Y 20
 
-#define upButton 2
-bool upButtonZ0 = false;
-bool upButtonZ1 = false;
-
-#define selectButton 3
-bool selectButtonZ0 = false;
-bool selectButtonZ1 = false;
-
-#define downButton 4
-bool downButtonZ0 = false;
-bool downButtonZ1 = false;
-
 #define button1 5
 bool button1Z0 = false;
 bool button1Z1 = false;
@@ -40,18 +28,16 @@ bool button3Z1 = false;
 bool button4Z0 = false;
 bool button4Z1 = false;
 
-#define button5 9
-bool button5Z0 = false;
-bool button5Z1 = false;
-
 #define switch1 10
 #define switch2 11
 #define switch3 12
 #define switch4 13
 
-#define encoderA 14
-#define encoderB 15
-#define encoderButton 16
+#define encoderA 2
+#define encoderB 3
+#define encoderButton 4
+bool encoderButtonZ0 = false;
+bool encoderButtonZ1 = false;
 
 #define STATE_STACK_MAX 10
 
@@ -128,7 +114,8 @@ int item_selected = 0;
 int item_previous;
 int item_next;
 
-int encoderCounter = 0;
+volatile int encoderCount = 0;
+int lastEncoderCount = 0;
 volatile bool lastA, lastB;
 
 
@@ -137,7 +124,7 @@ void handleEncoderInterrupt() {
   bool B = digitalRead(encoderB);
 
   // Determine rotation direction
-  if (A != lastA) {if (A == B) encoderCounter ++; if (A != B) encoderCounter --;} 
+  if (A != lastA) {if (A == B) encoderCount ++; if (A != B) encoderCount --;} 
 
   lastA = A;
   lastB = B;
@@ -146,16 +133,11 @@ void handleEncoderInterrupt() {
 
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
-  //Wire.begin();
-  pinMode(upButton, INPUT_PULLUP);
-  pinMode(selectButton, INPUT_PULLUP);
-  pinMode(downButton, INPUT_PULLUP);
   pinMode(encoderButton, INPUT_PULLUP);
   pinMode(button1, INPUT_PULLUP);
   pinMode(button2, INPUT_PULLUP);
   pinMode(button3, INPUT_PULLUP);
   pinMode(button4, INPUT_PULLUP);
-  pinMode(button5, INPUT_PULLUP);
   pinMode(switch1, INPUT_PULLUP);
   pinMode(switch2, INPUT_PULLUP);
   pinMode(switch3, INPUT_PULLUP);
@@ -202,20 +184,21 @@ States popState() {
 
 //______________________________________________________________________handleScrollAndSelect_________________________________________________________
 void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) {
+	int delta = encoderCount - lastEncoderCount;
 	if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-	if((upButtonZ1 != upButtonZ0) && (!upButtonZ0)) {item_selected --; if (item_selected < 0) item_selected = itemCount - 1;}
-  if((downButtonZ1 != downButtonZ0) && (!downButtonZ0)) {item_selected ++; if (item_selected >= itemCount) item_selected = 0;}
+	if(delta >= 2) {item_selected = (item_selected + itemCount - 1) % itemCount; lastEncoderCount += 2;}
+  if(delta <= -2) {item_selected = (item_selected + 1) % itemCount; lastEncoderCount -= 2;}
 	if(!destination) {return;}
-	if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state); state = pages[item_selected].destination;}
+	if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = pages[item_selected].destination;}
 }
 
 //_______________________________________________________________________mainFSM__________________________________________________________________
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
-      if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
+			if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
 			if((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {pushState(state);; state = STATE_MENU;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state);; state = STATE_MENU;}
 			break;
 		case STATE_MENU:
 			handleScrollAndSelect(MENU, MENU_ITEMS);
@@ -225,14 +208,14 @@ void mainFSM() {
 			break;
 		case STATE_LEG:
 			handleScrollAndSelect(LEG, LEG_ITEMS);
-      break;
+			break;
 		case STATE_GAIT:
 			handleScrollAndSelect(GAIT, GAIT_ITEMS, false);
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeGait = static_cast<Gaits>(item_selected);}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeGait = static_cast<Gaits>(item_selected);}
 			break;
 		case STATE_MODE:
 			handleScrollAndSelect(MODE, MODE_ITEMS, false);
-			if((selectButtonZ1 != selectButtonZ0) && (!selectButtonZ0)) {activeMode = static_cast<Modes>(item_selected);}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected);}
 			break;
 		default:
 			break;
@@ -470,14 +453,11 @@ void readInputData() {
 
 //_______________________________________________________________________readButtonData__________________________________________________________________
 void readButtonData() {
-  upButtonZ1 = upButtonZ0; upButtonZ0 = digitalRead(upButton);
-  downButtonZ1 = downButtonZ0; downButtonZ0 = digitalRead(downButton);
-  selectButtonZ1 = selectButtonZ0; selectButtonZ0 = digitalRead(selectButton);
   button1Z1 = button1Z0; button1Z0 = digitalRead(button1);
   button2Z1 = button2Z0; button2Z0 = digitalRead(button2);
   button3Z1 = button3Z0; button3Z0 = digitalRead(button3);
   button4Z1 = button4Z0; button4Z0 = digitalRead(button4);
-  button5Z1 = button5Z0; button5Z0 = digitalRead(button5);
+	encoderButtonZ1 = encoderButtonZ0; encoderButtonZ0 = digitalRead(encoderButton);
 }
 
 //_______________________________________________________________________readStickData__________________________________________________________________
