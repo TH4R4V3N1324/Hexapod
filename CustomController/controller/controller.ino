@@ -1,16 +1,11 @@
 #include <U8g2lib.h>
 #include "bitmaps.h"
-#include <Wire.h>
-#include <SPI.h>
-
-//#define SDAPin 33
-//#define SCLPin 32
 
 #define stick1X 17
 #define stick1Y 18
 
-#define stick1X 19
-#define stick1Y 20
+#define stick2X 19
+#define stick2Y 20
 
 #define button1 5
 bool button1Z0 = false;
@@ -87,9 +82,9 @@ page CONFIG[CONFIG_ITEMS] = {
 enum Joints {coxa, femur, tibia};
 const int LEG_ITEMS = 3;
 page LEG[LEG_ITEMS] = {
-	{"Coxa", epd_bitmap_joint_selected_icon, STATE_NONE},
-	{"Femur", epd_bitmap_joint_selected_icon, STATE_NONE},
-	{"Tibia", epd_bitmap_joint_selected_icon, STATE_NONE}
+	{"Coxa", epd_bitmap_leg_icon, STATE_NONE},
+	{"Femur", epd_bitmap_leg_icon, STATE_NONE},
+	{"Tibia", epd_bitmap_leg_icon, STATE_NONE}
 };
 
 enum Gaits {tripod, wave, ripple};
@@ -118,18 +113,14 @@ volatile int encoderCount = 0;
 int lastEncoderCount = 0;
 volatile bool lastA, lastB;
 
-
 void handleEncoderInterrupt() {
   bool A = digitalRead(encoderA);
   bool B = digitalRead(encoderB);
 
-  // Determine rotation direction
   if (A != lastA) {if (A == B) encoderCount ++; if (A != B) encoderCount --;} 
-
   lastA = A;
   lastB = B;
 }
-
 
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
@@ -192,13 +183,13 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 	if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = pages[item_selected].destination;}
 }
 
-//_______________________________________________________________________mainFSM__________________________________________________________________
+//______________________________________________________________________mainFSM_____________________________________________________________________
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
 			if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
 			if((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state);; state = STATE_MENU;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); lastEncoderCount = encoderCount; state = STATE_MENU;}
 			break;
 		case STATE_MENU:
 			handleScrollAndSelect(MENU, MENU_ITEMS);
@@ -240,26 +231,34 @@ void setupNav(const char* heading) {
 	u8g2.drawStr(29, 7, heading);
 }
 
+//______________________________________________________________________drawPageItems_________________________________________________________
+void drawPageItems(page* pages, bool itemIcons = false, bool hexIcon = false) {
+	// Previous
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(26, 23, pages[item_previous].item);
+  if (itemIcons) {u8g2.drawXBMP(4, 10, 16, 16, pages[item_previous].icon);}
+
+  // Current
+  u8g2.setFont(u8g_font_7x14B); 
+	if (hexIcon) {
+		u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+		u8g2.drawXBMP(82, 15, 42, 42, pages[item_selected].icon);
+		u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
+	} else {u8g2.drawXBMP(1, 27, 126, 20, epd_bitmap_selection_boarder);}
+  u8g2.drawStr(26, 41, pages[item_selected].item);
+  if (itemIcons) {u8g2.drawXBMP(4, 28, 16, 16, pages[item_selected].icon);}
+
+  // Next
+  u8g2.setFont(u8g_font_7x14);
+  u8g2.drawStr(26, 60, pages[item_next].item);
+  if (itemIcons) {u8g2.drawXBMP(4, 47, 16, 16, pages[item_next].icon);}
+}
+
 //_______________________________________________________________________menuPage__________________________________________________________________
 void menuPage() {
 	getItemIndex(MENU_ITEMS);
 	setupNav("Menu");
-
-  // Previous
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, MENU[item_previous].item);
-  u8g2.drawXBMP(4, 10, 16, 16, MENU[item_previous].icon);
-
-  // Current
-  u8g2.setFont(u8g_font_7x14B); 
-	u8g2.drawXBMP(1, 27, 126, 20, epd_bitmap_selection_boarder);
-  u8g2.drawStr(26, 41, MENU[item_selected].item);
-  u8g2.drawXBMP(4, 28, 16, 16, MENU[item_selected].icon);
-
-  // Next
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, MENU[item_next].item);
-  u8g2.drawXBMP(4, 47, 16, 16, MENU[item_next].icon);
+	drawPageItems(MENU, true);
 }
 
 //_______________________________________________________________________homePage__________________________________________________________________
@@ -320,74 +319,28 @@ void homePage() {
 void configPage() {
   getItemIndex(CONFIG_ITEMS);
 	setupNav("Menu>Config");
-
-  // Hexapod
-	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-  // Previous
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, CONFIG[item_previous].item);
-
-  // Current
-  u8g2.setFont(u8g_font_7x14B); 
-	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(26, 41, CONFIG[item_selected].item);
-  u8g2.drawXBMP(88, 18, 30, 37, CONFIG[item_selected].icon);
-
-  // Next
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, CONFIG[item_next].item);
+	drawPageItems(CONFIG, false, true);
 }
 
 //_______________________________________________________________________legPage__________________________________________________________________
 void legPage() {
   getItemIndex(LEG_ITEMS);
 	setupNav("Menu>Config>Leg");
+	drawPageItems(LEG, false, true);
 
-  // Hexapod
-	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-  // Previous
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, LEG[item_previous].item);
-
-  // Current
-  u8g2.setFont(u8g_font_7x14B); 
-	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawXBMP(81, 24, 40, 24, epd_bitmap_leg_icon);
-  u8g2.drawStr(26, 41, LEG[item_selected].item);
-
-  if (item_selected == coxa) u8g2.drawXBMP(85, 37, 3, 3, LEG[item_selected].icon);
-  if (item_selected == femur) u8g2.drawXBMP(96, 37, 3, 3, LEG[item_selected].icon);
-  if (item_selected == tibia) u8g2.drawXBMP(107, 26, 3, 3, LEG[item_selected].icon);
-
-  // Next
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, LEG[item_next].item);
+  if (item_selected == coxa) u8g2.drawXBMP(86, 37, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == femur) u8g2.drawXBMP(97, 37, 3, 3, epd_bitmap_joint_selected_icon);
+  if (item_selected == tibia) u8g2.drawXBMP(108, 26, 3, 3, epd_bitmap_joint_selected_icon);
 }
 
 //_______________________________________________________________________gaitPage__________________________________________________________________
 void gaitPage() {
   getItemIndex(GAIT_ITEMS);
 	setupNav("Menu>Gait");
+	drawPageItems(GAIT, false, false);
 
-  // Hexapod
-	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-  // Previous
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 23, GAIT[item_previous].item);
   if (item_previous == activeGait) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
-
-  // Current
-  u8g2.setFont(u8g_font_7x14B); 
-	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(18, 41, GAIT[item_selected].item);
   if (item_selected == activeGait) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
-
-  // Next
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 60, GAIT[item_next].item);
   if (item_next == activeGait) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
 }
 
@@ -395,25 +348,10 @@ void gaitPage() {
 void modePage() {
   getItemIndex(MODE_ITEMS);
 	setupNav("Menu>Mode");
+	drawPageItems(MODE, false, true);
 
-  // Hexapod
-	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-  // Previous
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 23, MODE[item_previous].item);
   if (item_previous == activeMode) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
-
-  // Current
-  u8g2.setFont(u8g_font_7x14B); 
-	u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-  u8g2.drawStr(18, 41, MODE[item_selected].item);
-  u8g2.drawXBMP(82, 15, 42, 42, MODE[item_selected].icon);
   if (item_selected == activeMode) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
-
-  // Next
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(18, 60, MODE[item_next].item);
   if (item_next == activeMode) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
 }
 
