@@ -231,15 +231,19 @@ void getItemIndex(const int NUM_ITEMS) {
   if (item_next >= NUM_ITEMS) item_next = 0;
 }
 
-//_______________________________________________________________________menuPage__________________________________________________________________
-void menuPage() {
-	getItemIndex(MENU_ITEMS);
-
+//_______________________________________________________________________setupNav__________________________________________________________________
+void setupNav(const char* heading) {
 	// Back button and nav
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
   u8g2.drawStr(5, 7, "Back");
-	u8g2.drawStr(29, 7, "Menu");
+	u8g2.drawStr(29, 7, heading);
+}
+
+//_______________________________________________________________________menuPage__________________________________________________________________
+void menuPage() {
+	getItemIndex(MENU_ITEMS);
+	setupNav("Menu");
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
@@ -315,12 +319,7 @@ void homePage() {
 //_______________________________________________________________________configPage__________________________________________________________________
 void configPage() {
   getItemIndex(CONFIG_ITEMS);
-
-	// Back button and nav
-	u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
-  u8g2.drawStr(5, 7, "Back");
-	u8g2.drawStr(29, 7, "Menu>Config");
+	setupNav("Menu>Config");
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
@@ -343,15 +342,10 @@ void configPage() {
 //_______________________________________________________________________legPage__________________________________________________________________
 void legPage() {
   getItemIndex(LEG_ITEMS);
+	setupNav("Menu>Config>Leg");
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-	// Back button and nav
-	u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
-  u8g2.drawStr(5, 7, "Back");
-	u8g2.drawStr(29, 7, "Menu>Config>Leg?");
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
@@ -375,15 +369,10 @@ void legPage() {
 //_______________________________________________________________________gaitPage__________________________________________________________________
 void gaitPage() {
   getItemIndex(GAIT_ITEMS);
+	setupNav("Menu>Gait");
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-	// Back button and nav
-	u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
-  u8g2.drawStr(5, 7, "Back");
-	u8g2.drawStr(29, 7, "Menu>Gait");
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
@@ -405,15 +394,10 @@ void gaitPage() {
 //_______________________________________________________________________modePage__________________________________________________________________
 void modePage() {
   getItemIndex(MODE_ITEMS);
+	setupNav("Menu>Mode");
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-
-	// Back button and nav
-	u8g2.setFont(u8g2_font_4x6_mf);
-  u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
-  u8g2.drawStr(5, 7, "Back");
-	u8g2.drawStr(29, 7, "Menu>Mode");
 
   // Previous
   u8g2.setFont(u8g_font_7x14);
