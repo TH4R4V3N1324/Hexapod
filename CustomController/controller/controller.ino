@@ -222,14 +222,18 @@ void mainFSM() {
 	}
 }
 
+//_______________________________________________________________________getItemIndex__________________________________________________________________
+void getItemIndex(const int NUM_ITEMS) {
+	item_previous = item_selected - 1;
+  if (item_previous < 0) item_previous = NUM_ITEMS - 1;
+
+  item_next = item_selected + 1;
+  if (item_next >= NUM_ITEMS) item_next = 0;
+}
 
 //_______________________________________________________________________menuPage__________________________________________________________________
 void menuPage() {
-	item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = MENU_ITEMS - 1;
-
-  item_next = item_selected + 1;
-  if (item_next >= MENU_ITEMS) item_next = 0;
+	getItemIndex(MENU_ITEMS);
 
 	// Back button and nav
 	u8g2.setFont(u8g2_font_4x6_mf);
@@ -305,16 +309,12 @@ void homePage() {
 
 	// Hexapod
 	u8g2.drawXBMP(72, 12, 48, 48, epd_bitmap_hex_boarder);
-  u8g2.drawXBMP(75, 15, 42, 42, MODE[activeMode].icon);
+	u8g2.drawXBMP(75, 15, 42, 42, MODE[activeMode].icon);
 }
 
 //_______________________________________________________________________configPage__________________________________________________________________
 void configPage() {
-  item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = CONFIG_ITEMS - 1;
-
-  item_next = item_selected + 1;
-  if (item_next >= CONFIG_ITEMS) item_next = 0;
+  getItemIndex(CONFIG_ITEMS);
 
 	// Back button and nav
 	u8g2.setFont(u8g2_font_4x6_mf);
@@ -342,11 +342,7 @@ void configPage() {
 
 //_______________________________________________________________________legPage__________________________________________________________________
 void legPage() {
-  item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = LEG_ITEMS - 1;
-
-  item_next = item_selected + 1;
-  if (item_next >= LEG_ITEMS) item_next = 0;
+  getItemIndex(LEG_ITEMS);
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
@@ -378,11 +374,7 @@ void legPage() {
 
 //_______________________________________________________________________gaitPage__________________________________________________________________
 void gaitPage() {
-  item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = GAIT_ITEMS - 1;
-
-  item_next = item_selected + 1;
-  if (item_next >= GAIT_ITEMS) item_next = 0;
+  getItemIndex(GAIT_ITEMS);
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
@@ -412,11 +404,7 @@ void gaitPage() {
 
 //_______________________________________________________________________modePage__________________________________________________________________
 void modePage() {
-  item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = MODE_ITEMS - 1;
-
-  item_next = item_selected + 1;
-  if (item_next >= MODE_ITEMS) item_next = 0;
+  getItemIndex(MODE_ITEMS);
 
   // Hexapod
 	u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
