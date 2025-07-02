@@ -201,10 +201,10 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 	if (!destination) return;
 
 	if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
-		visualScrollIndex = 0.00f;
-		item_selected = 0;
 		pushState(state);
-		state = pages[item_selected].destination; 
+		state = pages[item_selected].destination;
+    visualScrollIndex = 0.00f;
+		item_selected = 0; 
 	}
 }
 
