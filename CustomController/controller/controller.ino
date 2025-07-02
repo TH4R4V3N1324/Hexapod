@@ -434,6 +434,12 @@ void legPage() {
 	setupNav(navHeading);
 	drawPageItems(LEG, LEG_ITEMS, false, true);
 
+	u8g2.setFont(u8g_font_7x14);
+	char currentOffsetStr[3];
+	sprintf(currentOffsetStr, "%d", abs(LEG_OFFSET[leg_selected][item_selected]));
+	u8g2.drawStr(94, 56, (LEG_OFFSET[leg_selected][item_selected] < 0) ? "-" : "+");
+	u8g2.drawStr(102, 56, currentOffsetStr);
+
   if (item_selected == coxa) u8g2.drawXBMP(86, 37, 3, 3, epd_bitmap_joint_selected_icon);
   if (item_selected == femur) u8g2.drawXBMP(97, 37, 3, 3, epd_bitmap_joint_selected_icon);
   if (item_selected == tibia) u8g2.drawXBMP(108, 26, 3, 3, epd_bitmap_joint_selected_icon);
