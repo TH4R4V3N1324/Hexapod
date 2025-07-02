@@ -60,12 +60,11 @@ struct page {
 U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
 
-const int MENU_ITEMS = 5;
+const int MENU_ITEMS = 4;
 page MENU[MENU_ITEMS] = {
 	{"Config", epd_bitmap_cog_icon, STATE_CONFIG},
 	{"Mode", epd_bitmap_controller_icon, STATE_MODE},
 	{"Gait", epd_bitmap_paw_icon, STATE_GAIT},
-  {"Home Screen", epd_bitmap_home_icon, STATE_HOME},
 	{"Animation", epd_bitmap_film_icon, STATE_ANIMATION}
 };
 
@@ -116,6 +115,16 @@ volatile bool lastA, lastB;
 
 int currentPhase = 0;
 int currentHeight = 100;
+
+float scrollPosition = 0.0f; // Accumulates encoderDelta
+const float SCROLL_THRESHOLD = 1.0f; // Change item when this is exceeded
+float visualScrollIndex = 0.0f; // For smooth scrolling
+
+const int SCREEN_HEIGHT = 64;
+const int NAVBAR_HEIGHT = 10;
+const int ITEM_HEIGHT = 18;
+const float CENTER_Y = 42.0f;
+const float ySpacing = 19.0f;
 
 void handleEncoderInterrupt() {
   bool A = digitalRead(encoderA);
@@ -179,23 +188,34 @@ States popState() {
 
 //______________________________________________________________________handleScrollAndSelect_________________________________________________________
 void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) {
+	if ((button1Z1 != button1Z0) && (!button1Z0)) {state = popState(); return;}
+
 	int delta = encoderCount - lastEncoderCount;
-	if((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
-	if(delta >= 2) {item_selected = (item_selected + itemCount - 1) % itemCount; lastEncoderCount += 2;}
-  if(delta <= -2) {item_selected = (item_selected + 1) % itemCount; lastEncoderCount -= 2;}
-	if(!destination) {return;}
-	if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = pages[item_selected].destination;}
+
+	if (abs(delta) >= 2) {
+		lastEncoderCount = encoderCount;
+		if (delta > 0) {item_selected = (item_selected + itemCount - 1) % itemCount;} 
+		else {item_selected = (item_selected + 1) % itemCount;}
+	}
+
+	if (!destination) return;
+
+	if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
+		pushState(state);
+		if (abs((int)(visualScrollIndex - item_selected)) > 1) {visualScrollIndex = item_selected;}
+		state = pages[item_selected].destination; 
+	}
 }
 
 //______________________________________________________________________mainFSM_____________________________________________________________________
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
-      if(encoderDelta >= 2) {currentHeight --; lastEncoderCount += 2;}
+			if(encoderDelta >= 2) {currentHeight --; lastEncoderCount += 2;}
   		if(encoderDelta <= -2) {currentHeight ++; lastEncoderCount -= 2;}
 			if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
 			if((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); lastEncoderCount = encoderCount; state = STATE_MENU;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = STATE_MENU; lastEncoderCount = encoderCount;}
 			break;
 		case STATE_MENU:
 			handleScrollAndSelect(MENU, MENU_ITEMS);
@@ -219,13 +239,11 @@ void mainFSM() {
 	}
 }
 
-//_______________________________________________________________________getItemIndex__________________________________________________________________
-void getItemIndex(const int NUM_ITEMS) {
-	item_previous = item_selected - 1;
-  if (item_previous < 0) item_previous = NUM_ITEMS - 1;
-
-  item_next = item_selected + 1;
-  if (item_next >= NUM_ITEMS) item_next = 0;
+//_______________________________________________________________________circularDelta__________________________________________________________________
+float circularDelta(float from, float to, int size) {
+    float delta = fmodf((to - from + size), size);
+    if (delta > size / 2.0f) delta -= size;
+    return delta;
 }
 
 //_______________________________________________________________________setupNav__________________________________________________________________
@@ -237,34 +255,67 @@ void setupNav(const char* heading) {
 	u8g2.drawStr(29, 7, heading);
 }
 
-//______________________________________________________________________drawPageItems_________________________________________________________
-void drawPageItems(page* pages, bool itemIcons = false, bool hexIcon = false) {
-	// Previous
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 23, pages[item_previous].item);
-  if (itemIcons) {u8g2.drawXBMP(4, 10, 16, 16, pages[item_previous].icon);}
+//_______________________________________________________________________drawActiveItem__________________________________________________________________
+void drawActiveItem(int NUM_ITEMS, int activeItem) {
+	// Number of items
+  const int itemCount = NUM_ITEMS;
 
-  // Current
-  u8g2.setFont(u8g_font_7x14B); 
-	if (hexIcon) {
-		u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
-		u8g2.drawXBMP(82, 15, 42, 42, pages[item_selected].icon);
-		u8g2.drawXBMP(1, 27, 77, 20, epd_bitmap_selection_boarder_hex);
-	} else {u8g2.drawXBMP(1, 27, 126, 20, epd_bitmap_selection_boarder);}
-  u8g2.drawStr(26, 41, pages[item_selected].item);
-  if (itemIcons) {u8g2.drawXBMP(4, 28, 16, 16, pages[item_selected].icon);}
+  // Calculate offset from currently selected item to active item, handling wrap-around
+  int delta = activeItem - item_selected;
+  if (delta > itemCount / 2) delta -= itemCount;
+  if (delta < -itemCount / 2) delta += itemCount;
 
-  // Next
-  u8g2.setFont(u8g_font_7x14);
-  u8g2.drawStr(26, 60, pages[item_next].item);
-  if (itemIcons) {u8g2.drawXBMP(4, 47, 16, 16, pages[item_next].icon);}
+  // Define Y positions for items relative to selected item at 33
+  // If your item_selected is at Y=33, and items are spaced by 18px:
+  int yBase = 33;        // Y pos of selected item
+  int ySpacing = 18;     // vertical spacing between items
+  int yPos = yBase + delta * ySpacing;
+
+  // Only draw if visible within your scrolling window (e.g., y between 15 and 51)
+  if (yPos >= 15 && yPos <= 51) {u8g2.drawXBMP(5, yPos, 7, 7, epd_bitmap_selected_icon);}
 }
 
-//_______________________________________________________________________menuPage__________________________________________________________________
-void menuPage() {
-	getItemIndex(MENU_ITEMS);
-	setupNav("Menu");
-	drawPageItems(MENU, true);
+//______________________________________________________________________drawPageItems_________________________________________________________
+void drawPageItems(page* pages, int NUM_ITEMS, bool itemIcons = false, bool hexIcon = false) {
+  float delta = circularDelta(visualScrollIndex, (float)item_selected, NUM_ITEMS);
+  visualScrollIndex += 0.2f * delta;
+
+  // Clamp within [0, MENU_ITEMS)
+  if (visualScrollIndex < 0) visualScrollIndex += NUM_ITEMS;
+  if (visualScrollIndex >= NUM_ITEMS) visualScrollIndex -= NUM_ITEMS;
+
+	// Wrap scroll index to keep in [0, NUM_ITEMS)
+	float wrappedScroll = fmodf(visualScrollIndex + NUM_ITEMS, NUM_ITEMS);
+	int centerIndex = (int)wrappedScroll;
+	float fractionalOffset = wrappedScroll - (float)centerIndex;
+
+  // Draw the fixed selection border at CENTER_Y
+	if (hexIcon) {u8g2.drawXBMP(1, (int)(CENTER_Y - 14), 77, 20, epd_bitmap_selection_boarder_hex);} 
+	else {u8g2.drawXBMP(1, (int)(CENTER_Y - 14), 126, 20, epd_bitmap_selection_boarder);}
+  
+  // Draw visible items
+  for (int i = -2; i <= 2; i++) {
+    int index = (centerIndex + i + NUM_ITEMS) % NUM_ITEMS;
+    float y = CENTER_Y + ySpacing * (i - fractionalOffset);
+
+    if (y < NAVBAR_HEIGHT + 1 || y > SCREEN_HEIGHT - 1) continue;
+
+    if (index == item_selected) {
+			// This is the selected item — draw bold
+			u8g2.setFont(u8g_font_7x14B);
+			u8g2.drawStr(26, (int)roundf(y), pages[index].item);
+			if (itemIcons && !hexIcon) {u8g2.drawXBMP(4, (int)roundf(y - 13), 16, 16, pages[index].icon);}
+			if (hexIcon) {
+				u8g2.drawXBMP(79, 12, 48, 48, epd_bitmap_hex_boarder);
+				u8g2.drawXBMP(82, 15, 42, 42, pages[index].icon);
+			}
+		} else {
+			// Non-selected
+			u8g2.setFont(u8g_font_7x14);
+			u8g2.drawStr(26, (int)roundf(y), pages[index].item);
+			if (itemIcons) {u8g2.drawXBMP(4, (int)roundf(y - 13), 16, 16, pages[index].icon);}
+		}
+  }
 }
 
 //_______________________________________________________________________homePage__________________________________________________________________
@@ -325,18 +376,22 @@ void homePage() {
 	u8g2.drawXBMP(75, 15, 42, 42, MODE[activeMode].icon);
 }
 
+//_______________________________________________________________________menuPage__________________________________________________________________
+void menuPage() {
+	setupNav("Menu");
+	drawPageItems(MENU, MENU_ITEMS, true);
+}
+
 //_______________________________________________________________________configPage__________________________________________________________________
 void configPage() {
-  getItemIndex(CONFIG_ITEMS);
 	setupNav("Menu>Config");
-	drawPageItems(CONFIG, false, true);
+	drawPageItems(CONFIG, CONFIG_ITEMS, false, true);
 }
 
 //_______________________________________________________________________legPage__________________________________________________________________
 void legPage() {
-  getItemIndex(LEG_ITEMS);
 	setupNav("Menu>Config>Leg");
-	drawPageItems(LEG, false, true);
+	drawPageItems(LEG, LEG_ITEMS, false, true);
 
   if (item_selected == coxa) u8g2.drawXBMP(86, 37, 3, 3, epd_bitmap_joint_selected_icon);
   if (item_selected == femur) u8g2.drawXBMP(97, 37, 3, 3, epd_bitmap_joint_selected_icon);
@@ -345,29 +400,21 @@ void legPage() {
 
 //_______________________________________________________________________gaitPage__________________________________________________________________
 void gaitPage() {
-  getItemIndex(GAIT_ITEMS);
 	setupNav("Menu>Gait");
-	drawPageItems(GAIT, false, false);
-
-  if (item_previous == activeGait) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
-  if (item_selected == activeGait) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
-  if (item_next == activeGait) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
+	drawPageItems(GAIT, GAIT_ITEMS, false, false);
+	drawActiveItem(GAIT_ITEMS, activeGait);
 }
 
 //_______________________________________________________________________modePage__________________________________________________________________
 void modePage() {
-  getItemIndex(MODE_ITEMS);
 	setupNav("Menu>Mode");
-	drawPageItems(MODE, false, true);
-
-  if (item_previous == activeMode) u8g2.drawXBMP(5, 15, 7, 7, epd_bitmap_selected_icon);
-  if (item_selected == activeMode) u8g2.drawXBMP(5, 33, 7, 7, epd_bitmap_selected_icon);
-  if (item_next == activeMode) u8g2.drawXBMP(5, 51, 7, 7, epd_bitmap_selected_icon);
+	drawPageItems(MODE, MODE_ITEMS, false, true);
+	drawActiveItem(MODE_ITEMS, activeMode);
 }
 
 //_______________________________________________________________________readInputData__________________________________________________________________
 void readInputData() {
-  encoderDelta = encoderCount - lastEncoderCount;
+	encoderDelta = encoderCount - lastEncoderCount;
   readButtonData();
   readStickData();
 }
