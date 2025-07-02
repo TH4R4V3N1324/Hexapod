@@ -48,20 +48,22 @@ enum States {
 	STATE_JOINT
 	};
 
-States stateStack[STATE_STACK_MAX];
+struct StateStack {
+	States state;
+	int item_selected;
+
+	StateStack(int s = 0, int i = 0) : state(s), item_selected(i) {}
+};
+
+StateStack stateStack[STATE_STACK_MAX];
 int stackTop = -1;
+int stackIndex = 0;
 States state;
 
 struct page {
 	char* item;
 	const unsigned char* icon;
 	States destination;
-};
-
-struct legOffset {
-	int coxaOffset;
-	int femurOffset;
-	int tibiaOffset;
 };
 
 int LEG_OFFSET[6][3];
@@ -189,19 +191,26 @@ void loop() {
 }
 
 //_______________________________________________________________________pushState__________________________________________________________________
-void pushState(States s) {
-	if (stackTop < STATE_STACK_MAX - 1) {stateStack[++stackTop] = s;}
+void pushState(int currentState, int selectedItem) {
+  if (stackIndex < STATE_STACK_MAX) {stateStack[stackIndex++] = { currentState, selectedItem };}
 }
 
 //_______________________________________________________________________popState__________________________________________________________________
-States popState() {
-	if (stackTop >= 0) {return stateStack[stackTop--];}
-	return STATE_HOME; // fallback if stack is empty
+StateStack popState() {
+  if (stackIndex > 0) {return stateStack[--stackIndex];}
+  return { 0, 0 };  // Default fallback
+}
+
+//_______________________________________________________________________backPage__________________________________________________________________
+void backPage() {
+	StateStack restored = popState();
+	item_selected = restored.item_selected;
+	state = restored.state;
 }
 
 //______________________________________________________________________handleScrollAndSelect_________________________________________________________
 void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) {
-	if ((button1Z1 != button1Z0) && (!button1Z0)) {state = popState(); return;}
+	if ((button1Z1 != button1Z0) && (!button1Z0)) {backPage(); return;}
 
 	int delta = encoderCount - lastEncoderCount;
 
@@ -214,7 +223,7 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 	if (!destination) return;
 
 	if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
-		pushState(state);
+		pushState(state, item_selected);
 		state = pages[item_selected].destination;
 		visualScrollIndex = 0.00f;
 		item_selected = 0; 
@@ -229,7 +238,7 @@ void mainFSM() {
   		if (encoderDelta <= -2) {currentHeight ++; lastEncoderCount -= 2;}
 			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
 			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
-			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = STATE_MENU; lastEncoderCount = encoderCount;}
+			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state, item_selected); state = STATE_MENU; lastEncoderCount = encoderCount;}
 			break;
 		case STATE_MENU:
 			handleScrollAndSelect(MENU, MENU_ITEMS);
@@ -254,11 +263,11 @@ void mainFSM() {
 			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected);}
 			break;
 		case STATE_JOINT:
-			if ((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if ((button1Z1 != button1Z0) && (!button1Z0)) {backPage();}
 			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
 				LEG_OFFSET[leg_selected][joint_selected] = jointOffset;
 				jointOffset = 0;
-				state = popState();
+				backPage();
 			}
 			if(encoderDelta >= 2) {jointOffset --; lastEncoderCount += 2;}
   		if(encoderDelta <= -2) {jointOffset ++; lastEncoderCount -= 2;}
