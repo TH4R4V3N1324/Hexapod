@@ -44,7 +44,8 @@ enum States {
 	STATE_GAIT,
 	STATE_MODE,
 	STATE_ANIMATION,
-	STATE_LEG
+	STATE_LEG,
+	STATE_JOINT
 	};
 
 States stateStack[STATE_STACK_MAX];
@@ -56,6 +57,17 @@ struct page {
 	const unsigned char* icon;
 	States destination;
 };
+
+struct legOffset {
+	int coxaOffset;
+	int femurOffset;
+	int tibiaOffset;
+};
+
+int LEG_OFFSET[6][3];
+int jointOffset = 0;
+int leg_selected;
+int joint_selected;
 
 U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
@@ -81,9 +93,9 @@ page CONFIG[CONFIG_ITEMS] = {
 enum Joints {coxa, femur, tibia};
 const int LEG_ITEMS = 3;
 page LEG[LEG_ITEMS] = {
-	{"Coxa", epd_bitmap_leg_icon, STATE_NONE},
-	{"Femur", epd_bitmap_leg_icon, STATE_NONE},
-	{"Tibia", epd_bitmap_leg_icon, STATE_NONE}
+	{"Coxa", epd_bitmap_leg_icon, STATE_JOINT},
+	{"Femur", epd_bitmap_leg_icon, STATE_JOINT},
+	{"Tibia", epd_bitmap_leg_icon, STATE_JOINT}
 };
 
 enum Gaits {tripod, wave, ripple};
@@ -172,6 +184,7 @@ void loop() {
 		if (state == STATE_GAIT) gaitPage();
 		if (state == STATE_MODE) modePage();
 		//if (state == STATE_ANIMATION) animationPage();
+		if (state == STATE_JOINT) jointPage();
   } while ( u8g2.nextPage() );
 }
 
@@ -203,7 +216,7 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 	if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
 		pushState(state);
 		state = pages[item_selected].destination;
-    visualScrollIndex = 0.00f;
+		visualScrollIndex = 0.00f;
 		item_selected = 0; 
 	}
 }
@@ -212,19 +225,24 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
-			if(encoderDelta >= 2) {currentHeight --; lastEncoderCount += 2;}
-  		if(encoderDelta <= -2) {currentHeight ++; lastEncoderCount -= 2;}
-			if((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
-			if((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = STATE_MENU; lastEncoderCount = encoderCount;}
+			if (encoderDelta >= 2) {currentHeight --; lastEncoderCount += 2;}
+  		if (encoderDelta <= -2) {currentHeight ++; lastEncoderCount -= 2;}
+			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
+			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
+			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state); state = STATE_MENU; lastEncoderCount = encoderCount;}
 			break;
 		case STATE_MENU:
 			handleScrollAndSelect(MENU, MENU_ITEMS);
 			break;
 		case STATE_CONFIG:
+			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {leg_selected = item_selected;}
 			handleScrollAndSelect(CONFIG, CONFIG_ITEMS);
 			break;
 		case STATE_LEG:
+			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
+				joint_selected = item_selected; 
+				jointOffset = LEG_OFFSET[leg_selected][joint_selected];
+			}
 			handleScrollAndSelect(LEG, LEG_ITEMS);
 			break;
 		case STATE_GAIT:
@@ -235,6 +253,17 @@ void mainFSM() {
 			handleScrollAndSelect(MODE, MODE_ITEMS, false);
 			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected);}
 			break;
+		case STATE_JOINT:
+			if ((button1Z1 != button1Z0) && (!button1Z0)) {state = popState();}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
+				LEG_OFFSET[leg_selected][joint_selected] = jointOffset;
+				jointOffset = 0;
+				state = popState();
+			}
+			if(encoderDelta >= 2) {jointOffset --; lastEncoderCount += 2;}
+  		if(encoderDelta <= -2) {jointOffset ++; lastEncoderCount -= 2;}
+			if (jointOffset > 60) jointOffset = 60;
+			if (jointOffset < -60) jointOffset = -60;
 		default:
 			break;
 	}
@@ -391,7 +420,9 @@ void configPage() {
 
 //_______________________________________________________________________legPage__________________________________________________________________
 void legPage() {
-	setupNav("Menu>Config>Leg");
+	char navHeading[64]; // or large enough buffer
+	snprintf(navHeading, sizeof(navHeading), "Menu>Config>%s", CONFIG[leg_selected].item);
+	setupNav(navHeading);
 	drawPageItems(LEG, LEG_ITEMS, false, true);
 
   if (item_selected == coxa) u8g2.drawXBMP(86, 37, 3, 3, epd_bitmap_joint_selected_icon);
@@ -411,6 +442,26 @@ void modePage() {
 	setupNav("Menu>Mode");
 	drawPageItems(MODE, MODE_ITEMS, false, true);
 	drawActiveItem(MODE_ITEMS, activeMode);
+}
+
+//_______________________________________________________________________jointPage__________________________________________________________________
+void jointPage() {
+	char navHeading[64];  // Make sure buffer is big enough
+	snprintf(navHeading, sizeof(navHeading), "Menu>Config>%s>%s", CONFIG[leg_selected].item, LEG[joint_selected].item);
+	setupNav(navHeading);
+
+	u8g2.drawXBMP(1, 22, 126, 20, epd_bitmap_selection_boarder);
+	u8g2.drawBox(64 + ((jointOffset < 0) ? jointOffset : 0), 24, abs(jointOffset), 15);
+
+	u8g2.setFont(u8g_font_7x14);
+	char jointOffsetStr[4];
+	sprintf(jointOffsetStr, "%d", abs(jointOffset));
+	u8g2.drawStr(53, 56, (jointOffset < 0) ? "-" : "+");
+	u8g2.drawStr(61, 56, jointOffsetStr);
+
+	u8g2.setFont(u8g2_font_4x6_mf);
+  u8g2.drawXBMP(0, 53, 26, 10, epd_bitmap_button_boarder);
+  u8g2.drawStr(5, 60, "Save");
 }
 
 //_______________________________________________________________________readInputData__________________________________________________________________
