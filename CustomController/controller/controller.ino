@@ -1,36 +1,37 @@
-#include <U8g2lib.h>
 #include "bitmaps.h"
+#include <U8g2lib.h> 
+#include <SPI.h>
 
-#define stick1X 17
-#define stick1Y 18
+#define stick1X 16  // Joystick 1 - X axis
+#define stick1Y 17  // Joystick 1 - Y axis
 
-#define stick2X 19
-#define stick2Y 20
+#define stick2X 18  // Joystick 2 - X axis
+#define stick2Y 19  // Joystick 2 - Y axis
 
-#define button1 5
+#define button1 4
 bool button1Z0 = false;
 bool button1Z1 = false;
 
-#define button2 6
+#define button2 5
 bool button2Z0 = false;
 bool button2Z1 = false;
 
-#define button3 7
+#define button3 6
 bool button3Z0 = false;
 bool button3Z1 = false;
 
-#define button4 8
+#define button4 7
 bool button4Z0 = false;
 bool button4Z1 = false;
 
-#define switch1 10
-#define switch2 11
-#define switch3 12
-#define switch4 13
+#define switch1 8
+#define switch2 9
+#define switch3 10
+#define switch4 11
 
-#define encoderA 3
-#define encoderB 2
-#define encoderButton 4
+#define encoderA 20
+#define encoderB 21
+#define encoderButton 33
 bool encoderButtonZ0 = false;
 bool encoderButtonZ1 = false;
 
@@ -52,7 +53,7 @@ struct StateStack {
 	States state;
 	int item_selected;
 
-	StateStack(int s = 0, int i = 0) : state(s), item_selected(i) {}
+	StateStack(int s = 0, int i = 0) : state(static_cast<States>(s)), item_selected(i) {}
 };
 
 StateStack stateStack[STATE_STACK_MAX];
@@ -71,8 +72,12 @@ int jointOffset = 0;
 int leg_selected;
 int joint_selected;
 
-U8G2_SSD1309_128X64_NONAME0_1_HW_I2C u8g2(U8G2_R0);
-//U8G2_SSD1306_128X64_NONAME_1_HW_I2C u8g2(U8G2_R0);
+U8G2_SSD1309_128X64_NONAME0_F_4W_HW_SPI u8g2(
+  U8G2_R0,       // rotation
+  /* cs=*/ 0,   // GPIO0
+  /* dc=*/ 1,   // GPIO1
+  /* reset=*/ 2 // GPIO2
+);
 
 const int MENU_ITEMS = 4;
 page MENU[MENU_ITEMS] = {
@@ -144,7 +149,6 @@ const float ySpacing = 19.0f;
 
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
-	Serial.begin(115200);
   pinMode(encoderButton, INPUT_PULLUP);
 	pinMode(encoderA, INPUT_PULLUP);
 	pinMode(encoderB, INPUT_PULLUP);
@@ -171,7 +175,6 @@ void setup() {
 
 //_______________________________________________________________________loop__________________________________________________________________
 void loop() {
-	Serial.println(encoderCount);
   readInputData();
 	mainFSM();
   u8g2.firstPage();
@@ -424,14 +427,14 @@ void homePage() {
 	// Phase
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawStr(3, 40, "Phase");
-	char currentPhaseStr[3];
+	char currentPhaseStr[10];
 	sprintf(currentPhaseStr, "%d", currentPhase);
 	u8g2.drawStr(36, 40, currentPhaseStr);
 	
 	// Height
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawStr(3, 49, "Height");
-	char currentHeightStr[3];
+	char currentHeightStr[10];
 	sprintf(currentHeightStr, "%d", currentHeight);
 	u8g2.drawStr(36, 49, currentHeightStr);
 
