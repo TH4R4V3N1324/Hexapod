@@ -28,8 +28,8 @@ bool button4Z1 = false;
 #define switch3 12
 #define switch4 13
 
-#define encoderA 2
-#define encoderB 3
+#define encoderA 3
+#define encoderB 2
 #define encoderButton 4
 bool encoderButtonZ0 = false;
 bool encoderButtonZ1 = false;
@@ -122,10 +122,12 @@ int item_selected = 0;
 int item_previous;
 int item_next;
 
+enum EncoderStates {AB, Ab, aB, ab};
+EncoderStates encoderState;
 volatile int encoderCount = 0;
 int lastEncoderCount = 0;
 int encoderDelta = 0;
-volatile bool lastA, lastB;
+int encoderCountPerIndent = 4;
 
 int currentPhase = 0;
 int currentHeight = 100;
@@ -140,18 +142,12 @@ const int ITEM_HEIGHT = 18;
 const float CENTER_Y = 42.0f;
 const float ySpacing = 19.0f;
 
-void handleEncoderInterrupt() {
-  bool A = digitalRead(encoderA);
-  bool B = digitalRead(encoderB);
-
-  if (A != lastA) {if (A == B) encoderCount ++; if (A != B) encoderCount --;} 
-  lastA = A;
-  lastB = B;
-}
-
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
+	Serial.begin(115200);
   pinMode(encoderButton, INPUT_PULLUP);
+	pinMode(encoderA, INPUT_PULLUP);
+	pinMode(encoderB, INPUT_PULLUP);
   pinMode(button1, INPUT_PULLUP);
   pinMode(button2, INPUT_PULLUP);
   pinMode(button3, INPUT_PULLUP);
@@ -161,20 +157,21 @@ void setup() {
   pinMode(switch3, INPUT_PULLUP);
   pinMode(switch4, INPUT_PULLUP);
 
-  lastA = digitalRead(encoderA);
-  lastB = digitalRead(encoderB);
-  attachInterrupt(digitalPinToInterrupt(encoderA), handleEncoderInterrupt, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(encoderB), handleEncoderInterrupt, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderA), doEncoderFSM, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderB), doEncoderFSM, CHANGE);
 
   u8g2.begin();
   u8g2.setFont(u8g2_font_5x8_mn);
   u8g2.setColorIndex(1);
+
+	initializeEncoder();
 
   state = STATE_HOME;
 }
 
 //_______________________________________________________________________loop__________________________________________________________________
 void loop() {
+	Serial.println(encoderCount);
   readInputData();
 	mainFSM();
   u8g2.firstPage();
@@ -214,7 +211,7 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 
 	int delta = encoderCount - lastEncoderCount;
 
-	if (abs(delta) >= 2) {
+	if (abs(delta) >= encoderCountPerIndent) {
 		lastEncoderCount = encoderCount;
 		if (delta > 0) {item_selected = (item_selected + itemCount - 1) % itemCount;} 
 		else {item_selected = (item_selected + 1) % itemCount;}
@@ -234,8 +231,8 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
-			if (encoderDelta >= 2) {currentHeight --; lastEncoderCount += 2;}
-  		if (encoderDelta <= -2) {currentHeight ++; lastEncoderCount -= 2;}
+			if (encoderDelta >= encoderCountPerIndent) {currentHeight --; lastEncoderCount += encoderCountPerIndent;}
+  		if (encoderDelta <= -encoderCountPerIndent) {currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
 			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
 			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state, item_selected); state = STATE_MENU; lastEncoderCount = encoderCount;}
@@ -269,13 +266,46 @@ void mainFSM() {
 				jointOffset = 0;
 				backPage();
 			}
-			if(encoderDelta >= 2) {jointOffset --; lastEncoderCount += 2;}
-  		if(encoderDelta <= -2) {jointOffset ++; lastEncoderCount -= 2;}
+			if(encoderDelta >= encoderCountPerIndent) {jointOffset --; lastEncoderCount += encoderCountPerIndent;}
+  		if(encoderDelta <= -encoderCountPerIndent) {jointOffset ++; lastEncoderCount -= encoderCountPerIndent;}
 			if (jointOffset > 60) jointOffset = 60;
 			if (jointOffset < -60) jointOffset = -60;
 		default:
 			break;
 	}
+}
+
+//_____________________________________________________doEncoderFSM__________________________________________________
+void doEncoderFSM() {
+  switch (encoderState) {
+    case AB:
+      if (!digitalRead(encoderA)) {encoderState = aB; encoderCount++;}
+      if (!digitalRead(encoderB)) {encoderState = Ab; encoderCount--;}
+      break;
+    case aB:
+      if (!digitalRead(encoderB)) {encoderState = ab; encoderCount++;}
+      if (digitalRead(encoderA)) {encoderState = AB; encoderCount--;}
+      break;
+    case Ab:
+      if (digitalRead(encoderB)) {encoderState = AB; encoderCount++;}
+      if (!digitalRead(encoderA)) {encoderState = ab; encoderCount--;}
+      break;
+    case ab:
+      if (digitalRead(encoderA)) {encoderState = Ab; encoderCount++;}
+      if (digitalRead(encoderB)) {encoderState = aB; encoderCount--;}
+      break;
+    default:
+      printf("Invalid state");
+      break;
+  }
+}
+
+//_____________________________________________________initializeEncoder__________________________________________________
+void initializeEncoder() {
+  if (digitalRead(encoderA) && digitalRead(encoderB)) encoderState = AB;
+  if (!digitalRead(encoderA) && digitalRead(encoderB)) encoderState = aB;
+  if (digitalRead(encoderA) && !digitalRead(encoderB)) encoderState = Ab;
+  if (!digitalRead(encoderA) && !digitalRead(encoderB)) encoderState = ab;
 }
 
 //_______________________________________________________________________circularDelta__________________________________________________________________
