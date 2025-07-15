@@ -1,12 +1,13 @@
 #include "bitmaps.h"
 #include <U8g2lib.h> 
 #include <SPI.h>
+#include <WiFi.h>
+#include <esp_now.h>
 
 #define stick1X 16  // Joystick 1 - X axis
-#define stick1Y 17  // Joystick 1 - Y axis
-int joy1X;
-int joy1Y;
 int centerX = 0;
+
+#define stick1Y 17  // Joystick 1 - Y axis
 int centerY = 0;
 
 #define stick2X 18  // Joystick 2 - X axis
@@ -38,6 +39,15 @@ bool button4Z1 = false;
 #define encoderButton 33
 bool encoderButtonZ0 = false;
 bool encoderButtonZ1 = false;
+
+uint8_t receiverMAC[] = {0x30, 0xC9, 0x22, 0x28, 0x73, 0x4C};
+
+struct ControlPacket {
+  int16_t joystick1X;
+  int16_t joystick1Y;
+};
+
+ControlPacket packet;
 
 #define STATE_STACK_MAX 10
 
@@ -151,9 +161,29 @@ const int ITEM_HEIGHT = 18;
 const float CENTER_Y = 42.0f;
 const float ySpacing = 19.0f;
 
+int previousTime = 0;
+
+//_______________________________________________________________________sendData__________________________________________________________________
+void sendData() {
+  unsigned long currentTime = millis();
+  if (currentTime - previousTime > 10) {  // send every 10ms
+    esp_now_send(receiverMAC, (uint8_t *)&packet, sizeof(packet));
+    previousTime = currentTime; // update the last send time
+  }
+}
+
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
 	Serial.begin(115200);
+
+	WiFi.mode(WIFI_STA);
+  esp_now_init();
+  esp_now_peer_info_t peerInfo = {};
+  memcpy(peerInfo.peer_addr, receiverMAC, 6);
+  peerInfo.channel = 0;
+  peerInfo.encrypt = false;
+  if (!esp_now_is_peer_exist(receiverMAC)) {esp_now_add_peer(&peerInfo);}
+
   pinMode(encoderButton, INPUT_PULLUP);
 	pinMode(encoderA, INPUT_PULLUP);
 	pinMode(encoderB, INPUT_PULLUP);
@@ -184,6 +214,7 @@ void setup() {
 
 //_______________________________________________________________________loop__________________________________________________________________
 void loop() {
+	sendData();
   readInputData();
 	mainFSM();
   u8g2.firstPage();
@@ -570,6 +601,6 @@ void readStickData() {
   if (abs(x) < 8) x = 0;
   if (abs(y) < 8) y = 0;
 
-  joy1X = constrain(x, -128, 127);
-  joy1Y = constrain(y, -128, 127);
+	packet.joystick1X = constrain(x, -128, 127);
+	packet.joystick1Y = constrain(y, -128, 127);
 }
