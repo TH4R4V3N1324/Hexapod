@@ -4,6 +4,10 @@
 
 #define stick1X 16  // Joystick 1 - X axis
 #define stick1Y 17  // Joystick 1 - Y axis
+int joy1X;
+int joy1Y;
+int centerX = 0;
+int centerY = 0;
 
 #define stick2X 18  // Joystick 2 - X axis
 #define stick2Y 19  // Joystick 2 - Y axis
@@ -149,6 +153,7 @@ const float ySpacing = 19.0f;
 
 //_______________________________________________________________________setup__________________________________________________________________
 void setup() {
+	Serial.begin(115200);
   pinMode(encoderButton, INPUT_PULLUP);
 	pinMode(encoderA, INPUT_PULLUP);
 	pinMode(encoderB, INPUT_PULLUP);
@@ -163,6 +168,10 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(encoderA), doEncoderFSM, CHANGE);
   attachInterrupt(digitalPinToInterrupt(encoderB), doEncoderFSM, CHANGE);
+
+	// Read joystick at rest to find center
+  centerX = calibrateCenter(stick1X);
+  centerY = calibrateCenter(stick1Y);
 
   u8g2.begin();
   u8g2.setFont(u8g2_font_5x8_mn);
@@ -528,13 +537,39 @@ void readButtonData() {
 	encoderButtonZ1 = encoderButtonZ0; encoderButtonZ0 = digitalRead(encoderButton);
 }
 
+//_______________________________________________________________________calibrateCenter__________________________________________________________________
+int calibrateCenter(int pin) {
+  long total = 0;
+  const int samples = 20;
+
+  for (int i = 0; i < samples; i++) {
+    total += analogRead(pin);
+    delay(10); // Small delay between samples
+  }
+
+  return total / samples;
+}
+
 //_______________________________________________________________________readStickData__________________________________________________________________
 void readStickData() {
-  // Read raw analog values (range 0–4095)
   int xRaw = analogRead(stick1X);
   int yRaw = analogRead(stick1Y);
 
-  // Normalize to range -100 to 100 with deadzone
-  int x = map(xRaw, 0, 4095, -127, 128);
-  int y = map(yRaw, 0, 4095, -127, 128);
+  // Subtract center
+  int xCentered = xRaw - centerX;
+  int yCentered = yRaw - centerY;
+
+  // Optional axis flip
+  xCentered = -xCentered;
+
+  // Scale to -128 to 127
+  int x = (xCentered * 128L) / 2048;
+  int y = (yCentered * 128L) / 2048;
+
+  // Deadzone
+  if (abs(x) < 8) x = 0;
+  if (abs(y) < 8) y = 0;
+
+  joy1X = constrain(x, -128, 127);
+  joy1Y = constrain(y, -128, 127);
 }
