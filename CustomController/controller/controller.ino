@@ -233,8 +233,8 @@ void mainFSM() {
 		case STATE_HOME:
 			if (encoderDelta >= encoderCountPerIndent) {currentHeight --; lastEncoderCount += encoderCountPerIndent;}
   		if (encoderDelta <= -encoderCountPerIndent) {currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
-			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = (activeGait + 1) % GAIT_ITEMS;}
-			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = (activeMode + 1) % MODE_ITEMS;}
+			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = static_cast<Gaits>((activeGait + 1) % GAIT_ITEMS);}
+			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = static_cast<Modes>((activeMode + 1) % MODE_ITEMS);}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state, item_selected); state = STATE_MENU; lastEncoderCount = encoderCount;}
 			break;
 		case STATE_MENU:
