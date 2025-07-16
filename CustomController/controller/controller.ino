@@ -49,7 +49,8 @@ enum Command : uint8_t {
   CMD_SET_MODE,
   CMD_ENTER_CONFIG,
   CMD_SET_CONFIG,
-	CMD_HOME_STANCE
+	CMD_HOME_STANCE,
+	CMD_REQUEST_CONFIG
 };
 
 // Control data structure for hexapod
