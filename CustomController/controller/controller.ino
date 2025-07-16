@@ -151,6 +151,16 @@ page MODE[MODE_ITEMS] = {
 	{"Tilt", epd_bitmap_tilt_mode_icon, STATE_NONE}	
 };
 
+// Item information for Animation page
+const int ANIMATION_ITEMS = 5;
+page ANIMATION[ANIMATION_ITEMS] = {
+	{"Animation 1", nullptr, STATE_NONE},
+	{"Animation 2", nullptr, STATE_NONE},
+	{"Animation 3", nullptr, STATE_NONE},
+  {"Animation 4", nullptr, STATE_NONE},
+  {"Animation 5", nullptr, STATE_NONE}
+};
+
 // Items displayed on screen
 int item_selected = 0;
 int item_previous;
@@ -248,7 +258,7 @@ void loop() {
 		if (state == STATE_LEG) legPage();
 		if (state == STATE_GAIT) gaitPage();
 		if (state == STATE_MODE) modePage();
-		//if (state == STATE_ANIMATION) animationPage();
+		if (state == STATE_ANIMATION) animationPage();
 		if (state == STATE_JOINT) jointPage();
   } while ( u8g2.nextPage() );
 }
@@ -346,6 +356,10 @@ void mainFSM() {
   		if(encoderDelta <= -encoderCountPerIndent) {jointOffset ++; lastEncoderCount -= encoderCountPerIndent;}
 			if (jointOffset > 60) jointOffset = 60;
 			if (jointOffset < -60) jointOffset = -60;
+      break;
+    case STATE_ANIMATION:
+      handleScrollAndSelect(ANIMATION, ANIMATION_ITEMS, false);
+      break;
 		default:
 			break;
 	}
@@ -592,6 +606,12 @@ void jointPage() {
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawXBMP(0, 53, 26, 10, epd_bitmap_button_boarder);
   u8g2.drawStr(5, 60, "Save");
+}
+
+//_______________________________________________________________________animationPage__________________________________________________________________
+void animationPage() {
+	setupNav("Menu>Animation");
+	drawPageItems(ANIMATION, ANIMATION_ITEMS, false, false);
 }
 
 //_______________________________________________________________________readInputData__________________________________________________________________
