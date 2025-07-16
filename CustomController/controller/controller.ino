@@ -40,17 +40,22 @@ bool button4Z1 = false;
 bool encoderButtonZ0 = false;
 bool encoderButtonZ1 = false;
 
+// Mac address for hexapod esp32
 uint8_t receiverMAC[] = {0x30, 0xC9, 0x22, 0x28, 0x73, 0x4C};
 
+// Packet structure to be sent over espNOW
 struct ControlPacket {
   int16_t joystick1X;
   int16_t joystick1Y;
 };
 
+// Instance of ControlPacket
 ControlPacket packet;
 
+// Max number of items that can placed on the stack for navigation
 #define STATE_STACK_MAX 10
 
+// Main FSM states, matches availble pages
 enum States {
 	STATE_NONE,
 	STATE_HOME,
@@ -63,29 +68,33 @@ enum States {
 	STATE_JOINT
 	};
 
+// Definition of the stack used for navigation
 struct StateStack {
 	States state;
 	int item_selected;
-
 	StateStack(int s = 0, int i = 0) : state(static_cast<States>(s)), item_selected(i) {}
 };
 
+// Initialising the stack for navigation and instance of the state struct
 StateStack stateStack[STATE_STACK_MAX];
 int stackTop = -1;
 int stackIndex = 0;
 States state;
 
+// Definition for page information
 struct page {
 	char* item;
 	const unsigned char* icon;
 	States destination;
 };
 
+// Decleration of array to store leg configs
 int LEG_OFFSET[6][3];
 int jointOffset = 0;
 int leg_selected;
 int joint_selected;
 
+// Constructor for OLED screen, esp32s2 SPI default is 36(SCK) and 35(MOSI)
 U8G2_SSD1309_128X64_NONAME0_F_4W_HW_SPI u8g2(
   U8G2_R0,       // rotation
   /* cs=*/ 0,   // GPIO0
@@ -93,6 +102,7 @@ U8G2_SSD1309_128X64_NONAME0_F_4W_HW_SPI u8g2(
   /* reset=*/ 2 // GPIO2
 );
 
+// Item information for Menu page
 const int MENU_ITEMS = 4;
 page MENU[MENU_ITEMS] = {
 	{"Config", epd_bitmap_cog_icon, STATE_CONFIG},
@@ -101,6 +111,7 @@ page MENU[MENU_ITEMS] = {
 	{"Animation", epd_bitmap_film_icon, STATE_ANIMATION}
 };
 
+// Item information for Config page
 const int CONFIG_ITEMS = 6;
 page CONFIG[CONFIG_ITEMS] = {
   {"Leg1", epd_bitmap_leg1_icon, STATE_LEG},
@@ -111,6 +122,7 @@ page CONFIG[CONFIG_ITEMS] = {
   {"Leg6", epd_bitmap_leg6_icon, STATE_LEG}
 };
 
+// Item information for Leg page
 enum Joints {coxa, femur, tibia};
 const int LEG_ITEMS = 3;
 page LEG[LEG_ITEMS] = {
@@ -119,6 +131,7 @@ page LEG[LEG_ITEMS] = {
 	{"Tibia", epd_bitmap_leg_icon, STATE_JOINT}
 };
 
+// Item information for Gait page
 enum Gaits {tripod, wave, ripple};
 Gaits activeGait = tripod; 
 const int GAIT_ITEMS = 3;
@@ -128,6 +141,7 @@ page GAIT[GAIT_ITEMS] = {
 	{"Ripple", nullptr, STATE_NONE}
 };
 
+// Item information for Mode page
 enum Modes {strafe, normal, tilt};
 Modes activeMode = normal;
 const int MODE_ITEMS = 3;
@@ -137,33 +151,42 @@ page MODE[MODE_ITEMS] = {
 	{"Tilt", epd_bitmap_tilt_mode_icon, STATE_NONE}	
 };
 
+// Items displayed on screen
 int item_selected = 0;
 int item_previous;
 int item_next;
 
+// Declaration of encoder states
 enum EncoderStates {AB, Ab, aB, ab};
 EncoderStates encoderState;
+
+// Encoder variables
 volatile int encoderCount = 0;
 int lastEncoderCount = 0;
 int encoderDelta = 0;
 int encoderCountPerIndent = 4;
 
+// Variables displayed on Home page
 int currentPhase = 0;
 int currentHeight = 100;
 
+// Variables for scrolling
 float scrollPosition = 0.0f; // Accumulates encoderDelta
 const float SCROLL_THRESHOLD = 1.0f; // Change item when this is exceeded
 float visualScrollIndex = 0.0f; // For smooth scrolling
 
+// Page variables for aligning objects
 const int SCREEN_HEIGHT = 64;
 const int NAVBAR_HEIGHT = 10;
 const int ITEM_HEIGHT = 18;
 const float CENTER_Y = 42.0f;
 const float ySpacing = 19.0f;
 
+// Variable to store last recorded time
 int previousTime = 0;
 
 //_______________________________________________________________________sendData__________________________________________________________________
+// Sends data to Hexapod esp32 at regular intervals
 void sendData() {
   unsigned long currentTime = millis();
   if (currentTime - previousTime > 10) {  // send every 10ms
@@ -231,17 +254,23 @@ void loop() {
 }
 
 //_______________________________________________________________________pushState__________________________________________________________________
+
+// Adds state and current position of the cursor to the stack used for navigation
 void pushState(int currentState, int selectedItem) {
   if (stackIndex < STATE_STACK_MAX) {stateStack[stackIndex++] = { currentState, selectedItem };}
 }
 
 //_______________________________________________________________________popState__________________________________________________________________
+
+// Returns the state and position from the previous page
 StateStack popState() {
   if (stackIndex > 0) {return stateStack[--stackIndex];}
   return { 0, 0 };  // Default fallback
 }
 
 //_______________________________________________________________________backPage__________________________________________________________________
+
+// Return to previous page and cursor position
 void backPage() {
 	StateStack restored = popState();
 	item_selected = restored.item_selected;
@@ -249,6 +278,8 @@ void backPage() {
 }
 
 //______________________________________________________________________handleScrollAndSelect_________________________________________________________
+
+// Handles the scroll and selection logic for a given page
 void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) {
 	if ((button1Z1 != button1Z0) && (!button1Z0)) {backPage(); return;}
 
@@ -271,6 +302,8 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 }
 
 //______________________________________________________________________mainFSM_____________________________________________________________________
+
+// Main controller logic
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
@@ -318,7 +351,9 @@ void mainFSM() {
 	}
 }
 
-//_____________________________________________________doEncoderFSM__________________________________________________
+//_______________________________________________________________________doEncoderFSM__________________________________________________
+
+// State machine to interpret encoder states
 void doEncoderFSM() {
   switch (encoderState) {
     case AB:
@@ -343,7 +378,9 @@ void doEncoderFSM() {
   }
 }
 
-//_____________________________________________________initializeEncoder__________________________________________________
+//______________________________________________________________________initializeEncoder__________________________________________________
+
+// Sets encoder initial state
 void initializeEncoder() {
   if (digitalRead(encoderA) && digitalRead(encoderB)) encoderState = AB;
   if (!digitalRead(encoderA) && digitalRead(encoderB)) encoderState = aB;
@@ -359,8 +396,9 @@ float circularDelta(float from, float to, int size) {
 }
 
 //_______________________________________________________________________setupNav__________________________________________________________________
+
+// Setups the back button and nav bar
 void setupNav(const char* heading) {
-	// Back button and nav
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawXBMP(0, 0, 26, 10, epd_bitmap_button_boarder);
   u8g2.drawStr(5, 7, "Back");
@@ -368,6 +406,8 @@ void setupNav(const char* heading) {
 }
 
 //_______________________________________________________________________drawActiveItem__________________________________________________________________
+
+// Draws the "Selected" icon on the active item
 void drawActiveItem(int NUM_ITEMS, int activeItem) {
 	// Number of items
   const int itemCount = NUM_ITEMS;
@@ -388,6 +428,8 @@ void drawActiveItem(int NUM_ITEMS, int activeItem) {
 }
 
 //______________________________________________________________________drawPageItems_________________________________________________________
+
+// Main logic for displaying page items and their icons if available
 void drawPageItems(page* pages, int NUM_ITEMS, bool itemIcons = false, bool hexIcon = false) {
   float delta = circularDelta(visualScrollIndex, (float)item_selected, NUM_ITEMS);
   visualScrollIndex += 0.2f * delta;
@@ -502,7 +544,7 @@ void configPage() {
 
 //_______________________________________________________________________legPage__________________________________________________________________
 void legPage() {
-	char navHeading[64]; // or large enough buffer
+	char navHeading[64];
 	snprintf(navHeading, sizeof(navHeading), "Menu>Config>%s", CONFIG[leg_selected].item);
 	setupNav(navHeading);
 	drawPageItems(LEG, LEG_ITEMS, false, true);
@@ -553,6 +595,8 @@ void jointPage() {
 }
 
 //_______________________________________________________________________readInputData__________________________________________________________________
+
+// Reads the data from controller inputs
 void readInputData() {
 	encoderDelta = encoderCount - lastEncoderCount;
   readButtonData();
@@ -560,6 +604,8 @@ void readInputData() {
 }
 
 //_______________________________________________________________________readButtonData__________________________________________________________________
+
+// Reads debounced states of buttons
 void readButtonData() {
   button1Z1 = button1Z0; button1Z0 = digitalRead(button1);
   button2Z1 = button2Z0; button2Z0 = digitalRead(button2);
@@ -569,6 +615,8 @@ void readButtonData() {
 }
 
 //_______________________________________________________________________calibrateCenter__________________________________________________________________
+
+// Calibrates the centre position of a joystick
 int calibrateCenter(int pin) {
   long total = 0;
   const int samples = 20;
@@ -582,6 +630,8 @@ int calibrateCenter(int pin) {
 }
 
 //_______________________________________________________________________readStickData__________________________________________________________________
+
+// Reads and interprets raw joystick data
 void readStickData() {
   int xRaw = analogRead(stick1X);
   int yRaw = analogRead(stick1Y);
