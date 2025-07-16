@@ -48,7 +48,8 @@ enum Command : uint8_t {
   CMD_SET_GAIT,
   CMD_SET_MODE,
   CMD_ENTER_CONFIG,
-  CMD_SET_CONFIG
+  CMD_SET_CONFIG,
+	CMD_HOME_STANCE
 };
 
 // Control data structure for hexapod
@@ -205,6 +206,9 @@ const float ySpacing = 19.0f;
 // Variable to store last recorded time
 int previousTime = 0;
 
+// Flag for if in config stance
+bool configStance = false;
+
 //_______________________________________________________________________sendData__________________________________________________________________
 // Sends data to Hexapod esp32 at regular intervals
 void sendData() {
@@ -329,15 +333,17 @@ void mainFSM() {
 		case STATE_HOME:
 			if (encoderDelta >= encoderCountPerIndent) {currentHeight --; lastEncoderCount += encoderCountPerIndent;}
   		if (encoderDelta <= -encoderCountPerIndent) {currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
-			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = static_cast<Gaits>((activeGait + 1) % GAIT_ITEMS); packet.command = CMD_SET_GAIT; packet.commandValue = activeGait;}
-			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = static_cast<Modes>((activeMode + 1) % MODE_ITEMS); packet.command = CMD_SET_MODE; packet.commandValue = activeMode;}
+			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = static_cast<Gaits>((activeGait + 1) % GAIT_ITEMS); packet.command = CMD_SET_GAIT; packet.commandArgs[0] = activeGait;}
+			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = static_cast<Modes>((activeMode + 1) % MODE_ITEMS); packet.command = CMD_SET_MODE; packet.commandArgs[0] = activeMode;}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state, item_selected); state = STATE_MENU; lastEncoderCount = encoderCount;}
 			break;
 		case STATE_MENU:
+			if (configStance) {packet.command = CMD_HOME_STANCE; configStance = false;}
 			handleScrollAndSelect(MENU, MENU_ITEMS);
 			break;
 		case STATE_CONFIG:
-			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {leg_selected = item_selected; packet.command = CMD_ENTER_CONFIG;}
+			if (!configStance) {packet.command = CMD_ENTER_CONFIG; configStance = true;}
+			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {leg_selected = item_selected;}
 			handleScrollAndSelect(CONFIG, CONFIG_ITEMS);
 			break;
 		case STATE_LEG:
@@ -349,20 +355,20 @@ void mainFSM() {
 			break;
 		case STATE_GAIT:
 			handleScrollAndSelect(GAIT, GAIT_ITEMS, false);
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeGait = static_cast<Gaits>(item_selected); packet.command = CMD_SET_GAIT; packet.commandValue = activeGait;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeGait = static_cast<Gaits>(item_selected); packet.command = CMD_SET_GAIT; packet.commandArgs[0] = activeGait;}
 			break;
 		case STATE_MODE:
 			handleScrollAndSelect(MODE, MODE_ITEMS, false);
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected); packet.command = CMD_SET_MODE; packet.commandValue = activeMode;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected); packet.command = CMD_SET_MODE; packet.commandArgs[0] = activeMode;}
 			break;
 		case STATE_JOINT:
 			if ((button1Z1 != button1Z0) && (!button1Z0)) {backPage();}
 			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
 				LEG_OFFSET[leg_selected][joint_selected] = jointOffset;
         packet.command = CMD_SET_CONFIG;
-        packet.legConfig[0] = leg_selected;
-        packet.legConfig[1] = joint_selected;
-        packet.legConfig[2] = jointOffset;
+        packet.commandArgs[0] = leg_selected;
+        packet.commandArgs[1] = joint_selected;
+        packet.commandArgs[2] = jointOffset;
 				jointOffset = 0;
 				backPage();
 			}

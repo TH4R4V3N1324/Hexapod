@@ -6,7 +6,8 @@ enum Command : uint8_t {
   CMD_SET_GAIT,
   CMD_SET_MODE,
   CMD_ENTER_CONFIG,
-  CMD_SET_CONFIG
+  CMD_SET_CONFIG,
+  CMD_HOME_STANCE
 };
 
 struct ControlPacket {
@@ -20,12 +21,6 @@ ControlPacket packet;
 
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
   memcpy(&packet, data, sizeof(packet));
-  Serial.print("leg config - leg: ");
-  Serial.print(packet.legConfig[0]);
-  Serial.print(", joint: ");
-  Serial.print(packet.legConfig[1]);
-  Serial.print(", offset: ");
-  Serial.println(packet.legConfig[2]);
 }
 
 void setup() {
@@ -36,5 +31,34 @@ void setup() {
 }
 
 void loop() {
-  // Nothing here
+  commandFSM();
+}
+
+void commandFSM() {
+  switch (packet.command) {
+    case CMD_SET_GAIT:
+      Serial.print("Gait: ");
+      Serial.println(packet.commandArgs[0]);
+      break;
+    case CMD_SET_MODE:
+      Serial.print("Mode: ");
+      Serial.println(packet.commandArgs[0]);
+      break;
+    case CMD_ENTER_CONFIG:
+      Serial.println("Moving to config stance");
+      break;
+    case CMD_SET_CONFIG:
+      Serial.print("Leg: ");
+      Serial.print(packet.commandArgs[0]);
+      Serial.print(" Joint: ");
+      Serial.print(packet.commandArgs[1]);
+      Serial.print(" Offset: ");
+      Serial.println(packet.commandArgs[2]);
+      break;
+    case CMD_HOME_STANCE:
+      Serial.println("Moving to home stance");
+      break;
+    default:
+      break;
+  }
 }
