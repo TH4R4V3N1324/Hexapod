@@ -19,9 +19,18 @@ struct ControlPacket {
 };
 
 ControlPacket packet;
+ControlPacket prevPacket;
 
 void OnDataRecv(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
   memcpy(&packet, data, sizeof(packet));
+}
+
+bool packetChanged(const ControlPacket& a, const ControlPacket& b) {
+  if (a.command != b.command) return true;
+  for (int i = 0; i < 3; i++) {
+    if (a.commandArgs[i] != b.commandArgs[i]) return true;
+  }
+  return false;
 }
 
 void setup() {
@@ -32,7 +41,10 @@ void setup() {
 }
 
 void loop() {
-  commandFSM();
+  if (packetChanged(packet, prevPacket)) {
+    prevPacket = packet;
+    commandFSM();
+  }
 }
 
 void commandFSM() {
