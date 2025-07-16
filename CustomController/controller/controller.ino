@@ -65,6 +65,15 @@ struct ControlPacket {
 // Instance of ControlPacket
 ControlPacket packet;
 
+// Define ConfigPacket struct
+struct ConfigPacket {
+  int16_t legOffset[6][3];
+  int16_t currentHeight;
+};
+
+// Instance of ConfigPacket
+ConfigPacket configPacket;
+
 // Max number of items that can placed on the stack for navigation
 #define STATE_STACK_MAX 10
 
@@ -102,7 +111,7 @@ struct page {
 };
 
 // Decleration of array to store leg configs
-int LEG_OFFSET[6][3];
+uint16_t LEG_OFFSET[6][3];
 int jointOffset = 0;
 int leg_selected;
 int joint_selected;
@@ -210,6 +219,9 @@ int previousTime = 0;
 // Flag for if in config stance
 bool configStance = false;
 
+// Flag to check if data received from hex
+bool hexDataReceived = false;
+
 //_______________________________________________________________________sendData__________________________________________________________________
 // Sends data to Hexapod esp32 at regular intervals
 void sendData() {
@@ -218,6 +230,34 @@ void sendData() {
     esp_now_send(receiverMAC, (uint8_t *)&packet, sizeof(packet));
     previousTime = currentTime; // update the last send time
   }
+}
+
+//_______________________________________________________________________getHexData__________________________________________________________________
+void getHexData() {
+	packet.command = CMD_REQUEST_CONFIG;
+	esp_now_send(receiverMAC, (uint8_t *)&packet, sizeof(packet));
+}
+
+//_______________________________________________________________________onHexDataReceived__________________________________________________________________
+void onHexDataReceived(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len){
+	if (len == sizeof(ConfigPacket)) {
+    memcpy(&configPacket, data, sizeof(ConfigPacket));
+		hexDataReceived = true;
+	}
+}
+
+//_______________________________________________________________________startup__________________________________________________________________
+void startup() {
+	getHexData();
+	while (!hexDataReceived) delay(1);
+
+	for (int leg = 0; leg < 6; ++leg) {
+		for (int joint = 0; joint < 3; ++joint) {
+			LEG_OFFSET[leg][joint] = configPacket.legOffset[leg][joint];
+		}
+	}
+	packet.currentHeight = configPacket.currentHeight;
+	hexDataReceived = false;
 }
 
 //_______________________________________________________________________setup__________________________________________________________________
@@ -231,6 +271,8 @@ void setup() {
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
   if (!esp_now_is_peer_exist(receiverMAC)) {esp_now_add_peer(&peerInfo);}
+
+	esp_now_register_recv_cb(onHexDataReceived);
 
   pinMode(encoderButton, INPUT_PULLUP);
 	pinMode(encoderA, INPUT_PULLUP);
@@ -258,6 +300,8 @@ void setup() {
 	initializeEncoder();
 
   state = STATE_HOME;
+
+	startup();
 }
 
 //_______________________________________________________________________loop__________________________________________________________________
