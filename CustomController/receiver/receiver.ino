@@ -13,8 +13,7 @@ struct ControlPacket {
   int16_t joystick1X;
   int16_t joystick1Y;
   Command command;
-  uint8_t commandValue;
-  int16_t legConfig[3];
+  int16_t commandArgs[3];
 };
 
 ControlPacket packet;
