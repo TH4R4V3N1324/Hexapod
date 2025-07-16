@@ -56,6 +56,7 @@ enum Command : uint8_t {
 struct ControlPacket {
   int16_t joystick1X;
   int16_t joystick1Y;
+	int16_t currentHeight = 100;
   Command command;
   int16_t commandArgs[3];
 };
@@ -189,7 +190,6 @@ int encoderCountPerIndent = 4;
 
 // Variables displayed on Home page
 int currentPhase = 0;
-int currentHeight = 100;
 
 // Variables for scrolling
 float scrollPosition = 0.0f; // Accumulates encoderDelta
@@ -331,8 +331,8 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
-			if (encoderDelta >= encoderCountPerIndent) {currentHeight --; lastEncoderCount += encoderCountPerIndent;}
-  		if (encoderDelta <= -encoderCountPerIndent) {currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
+			if (encoderDelta >= encoderCountPerIndent) {packet.currentHeight --; lastEncoderCount += encoderCountPerIndent;}
+  		if (encoderDelta <= -encoderCountPerIndent) {packet.currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
 			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = static_cast<Gaits>((activeGait + 1) % GAIT_ITEMS); packet.command = CMD_SET_GAIT; packet.commandArgs[0] = activeGait;}
 			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = static_cast<Modes>((activeMode + 1) % MODE_ITEMS); packet.command = CMD_SET_MODE; packet.commandArgs[0] = activeMode;}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state, item_selected); state = STATE_MENU; lastEncoderCount = encoderCount;}
@@ -551,7 +551,7 @@ void homePage() {
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawStr(3, 49, "Height");
 	char currentHeightStr[10];
-	sprintf(currentHeightStr, "%d", currentHeight);
+	sprintf(currentHeightStr, "%d", packet.currentHeight);
 	u8g2.drawStr(36, 49, currentHeightStr);
 
 	// Menu Button

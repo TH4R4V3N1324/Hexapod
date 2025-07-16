@@ -13,6 +13,7 @@ enum Command : uint8_t {
 struct ControlPacket {
   int16_t joystick1X;
   int16_t joystick1Y;
+  int16_t currentHeight;
   Command command;
   int16_t commandArgs[3];
 };
