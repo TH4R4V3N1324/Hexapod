@@ -53,26 +53,24 @@ enum Command : uint8_t {
 	CMD_REQUEST_CONFIG
 };
 
-// Control data structure for hexapod
+// Define ControlPacket struct
 struct ControlPacket {
   int16_t joystick1X;
   int16_t joystick1Y;
-	int16_t currentHeight = 100;
+  int16_t currentHeight;
   Command command;
   int16_t commandArgs[3];
 };
 
-// Instance of ControlPacket
-ControlPacket packet;
-
-// Define ConfigPacket struct
-struct ConfigPacket {
-  int16_t legOffset[6][3];
+// Define HexPacket struct
+struct HexPacket {
+  int16_t legConfigs[3];
   int16_t currentHeight;
 };
 
-// Instance of ConfigPacket
-ConfigPacket configPacket;
+// Instances of packets
+ControlPacket controlPacket = {};
+HexPacket hexPacket = {};
 
 // Max number of items that can placed on the stack for navigation
 #define STATE_STACK_MAX 10
@@ -227,37 +225,17 @@ bool hexDataReceived = false;
 void sendData() {
   unsigned long currentTime = millis();
   if (currentTime - previousTime > 10) {  // send every 10ms
-    esp_now_send(receiverMAC, (uint8_t *)&packet, sizeof(packet));
+    esp_now_send(receiverMAC, (uint8_t *)&controlPacket, sizeof(ControlPacket));
     previousTime = currentTime; // update the last send time
   }
 }
 
-//_______________________________________________________________________getHexData__________________________________________________________________
-void getHexData() {
-	packet.command = CMD_REQUEST_CONFIG;
-	esp_now_send(receiverMAC, (uint8_t *)&packet, sizeof(packet));
-}
-
 //_______________________________________________________________________onHexDataReceived__________________________________________________________________
 void onHexDataReceived(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len){
-	if (len == sizeof(ConfigPacket)) {
-    memcpy(&configPacket, data, sizeof(ConfigPacket));
+	if (len == sizeof(HexPacket)) {
+    memcpy(&hexPacket, data, sizeof(HexPacket));
 		hexDataReceived = true;
 	}
-}
-
-//_______________________________________________________________________startup__________________________________________________________________
-void startup() {
-	getHexData();
-	while (!hexDataReceived) delay(1);
-
-	for (int leg = 0; leg < 6; ++leg) {
-		for (int joint = 0; joint < 3; ++joint) {
-			LEG_OFFSET[leg][joint] = configPacket.legOffset[leg][joint];
-		}
-	}
-	packet.currentHeight = configPacket.currentHeight;
-	hexDataReceived = false;
 }
 
 //_______________________________________________________________________setup__________________________________________________________________
@@ -300,8 +278,6 @@ void setup() {
 	initializeEncoder();
 
   state = STATE_HOME;
-
-	//startup();
 }
 
 //_______________________________________________________________________loop__________________________________________________________________
@@ -376,18 +352,18 @@ void handleScrollAndSelect(page* pages, int itemCount, bool destination = true) 
 void mainFSM() {
 	switch (state) {
 		case STATE_HOME:
-			if (encoderDelta >= encoderCountPerIndent) {packet.currentHeight --; lastEncoderCount += encoderCountPerIndent;}
-  		if (encoderDelta <= -encoderCountPerIndent) {packet.currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
-			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = static_cast<Gaits>((activeGait + 1) % GAIT_ITEMS); packet.command = CMD_SET_GAIT; packet.commandArgs[0] = activeGait;}
-			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = static_cast<Modes>((activeMode + 1) % MODE_ITEMS); packet.command = CMD_SET_MODE; packet.commandArgs[0] = activeMode;}
+			if (encoderDelta >= encoderCountPerIndent) {controlPacket.currentHeight --; lastEncoderCount += encoderCountPerIndent;}
+  		if (encoderDelta <= -encoderCountPerIndent) {controlPacket.currentHeight ++; lastEncoderCount -= encoderCountPerIndent;}
+			if ((button2Z1 != button2Z0) && (!button2Z0)) {activeGait = static_cast<Gaits>((activeGait + 1) % GAIT_ITEMS); controlPacket.command = CMD_SET_GAIT; controlPacket.commandArgs[0] = activeGait;}
+			if ((button3Z1 != button3Z0) && (!button3Z0)) {activeMode = static_cast<Modes>((activeMode + 1) % MODE_ITEMS); controlPacket.command = CMD_SET_MODE; controlPacket.commandArgs[0] = activeMode;}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {pushState(state, item_selected); state = STATE_MENU; lastEncoderCount = encoderCount;}
 			break;
 		case STATE_MENU:
-			if (configStance) {packet.command = CMD_HOME_STANCE; configStance = false;}
+			if (configStance) {controlPacket.command = CMD_HOME_STANCE; configStance = false;}
 			handleScrollAndSelect(MENU, MENU_ITEMS);
 			break;
 		case STATE_CONFIG:
-			if (!configStance) {packet.command = CMD_ENTER_CONFIG; configStance = true;}
+			if (!configStance) {controlPacket.command = CMD_ENTER_CONFIG; configStance = true;}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {leg_selected = item_selected;}
 			handleScrollAndSelect(CONFIG, CONFIG_ITEMS);
 			break;
@@ -400,20 +376,20 @@ void mainFSM() {
 			break;
 		case STATE_GAIT:
 			handleScrollAndSelect(GAIT, GAIT_ITEMS, false);
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeGait = static_cast<Gaits>(item_selected); packet.command = CMD_SET_GAIT; packet.commandArgs[0] = activeGait;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeGait = static_cast<Gaits>(item_selected); controlPacket.command = CMD_SET_GAIT; controlPacket.commandArgs[0] = activeGait;}
 			break;
 		case STATE_MODE:
 			handleScrollAndSelect(MODE, MODE_ITEMS, false);
-			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected); packet.command = CMD_SET_MODE; packet.commandArgs[0] = activeMode;}
+			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {activeMode = static_cast<Modes>(item_selected); controlPacket.command = CMD_SET_MODE; controlPacket.commandArgs[0] = activeMode;}
 			break;
 		case STATE_JOINT:
 			if ((button1Z1 != button1Z0) && (!button1Z0)) {backPage();}
 			if((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {
 				LEG_OFFSET[leg_selected][joint_selected] = jointOffset;
-        packet.command = CMD_SET_CONFIG;
-        packet.commandArgs[0] = leg_selected;
-        packet.commandArgs[1] = joint_selected;
-        packet.commandArgs[2] = jointOffset;
+        controlPacket.command = CMD_SET_CONFIG;
+        controlPacket.commandArgs[0] = leg_selected;
+        controlPacket.commandArgs[1] = joint_selected;
+        controlPacket.commandArgs[2] = jointOffset;
 				jointOffset = 0;
 				backPage();
 			}
@@ -596,7 +572,7 @@ void homePage() {
 	u8g2.setFont(u8g2_font_4x6_mf);
   u8g2.drawStr(3, 49, "Height");
 	char currentHeightStr[10];
-	sprintf(currentHeightStr, "%d", packet.currentHeight);
+	sprintf(currentHeightStr, "%d", controlPacket.currentHeight);
 	u8g2.drawStr(36, 49, currentHeightStr);
 
 	// Menu Button
@@ -736,6 +712,6 @@ void readStickData() {
   if (abs(x) < 10) x = 0;
   if (abs(y) < 10) y = 0;
 
-	packet.joystick1X = constrain(x, -128, 127);
-	packet.joystick1Y = constrain(y, -128, 127);
+	controlPacket.joystick1X = constrain(x, -128, 127);
+	controlPacket.joystick1Y = constrain(y, -128, 127);
 }
