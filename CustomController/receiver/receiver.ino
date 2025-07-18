@@ -28,17 +28,15 @@ struct ControlPacket {
   int16_t commandArgs[3];
 };
 
-// Instance of ControlPacket
-ControlPacket packet;
-
-// Define ConfigPacket struct
-struct ConfigPacket {
-  int16_t legOffset[6][3];
+// Define HexPacket struct
+struct HexPacket {
+  int16_t legConfigs[3];
   int16_t currentHeight;
 };
 
-// Instance of ConfigPacket
-ConfigPacket configPacket;
+// Instances of packets
+ControlPacket controlPacket = {};
+HexPacket hexPacket = {};
 
 //_______________________________________________________________________OnDataRecv__________________________________________________________________
 
@@ -53,7 +51,9 @@ void receiveEventEspNOW(const esp_now_recv_info_t *recv_info, const uint8_t *dat
   ControlPacket incomingPacket;
   memcpy(&incomingPacket, data, sizeof(ControlPacket));
 
-  if (packetChanged(incomingPacket, packet)) {packet = incomingPacket;}
+  if (packetChanged(incomingPacket, controlPacket)) {controlPacket = incomingPacket;}
+
+  esp_now_send(controllerMAC, (uint8_t*)&hexPacket, sizeof(HexPacket));
 }
 
 //_______________________________________________________________________requestEvent__________________________________________________________________
@@ -61,27 +61,18 @@ void receiveEventEspNOW(const esp_now_recv_info_t *recv_info, const uint8_t *dat
 // Function to handle I2C request event
 void requestEventI2C() {
   // Send the data structure to the master (Raspberry Pi Pico)
-  Wire.write((uint8_t*)&packet, sizeof(ControlPacket));
+  Wire.write((uint8_t*)&controlPacket, sizeof(ControlPacket));
 }
 
 //_______________________________________________________________________receiveEvent__________________________________________________________________
 
-// Function to handle I2C request event
+// Function to handle I2C receive event (ESP32 receives updated HexPacket from Pico)
 void receiveEventI2C(int numBytes) {
-  if (Wire.available() < sizeof(ConfigPacket)) {
-    Serial.println("Incomplete config packet received");
-    return;
+  if (numBytes != sizeof(HexPacket)) {
+    Serial.printf("Warning: Expected %d bytes, received %d\n", sizeof(HexPacket), numBytes);
   }
 
-  Wire.readBytes((char*)&configPacket, sizeof(ConfigPacket));
-
-  esp_err_t result = esp_now_send(controllerMAC, (uint8_t*)&configPacket, sizeof(ConfigPacket));
-  if (result == ESP_OK) {
-    Serial.println("Config packet relayed to controller");
-  } else {
-    Serial.print("Failed to send config packet: ");
-    Serial.println(result);
-  }
+  Wire.readBytes((char*)&hexPacket, sizeof(HexPacket));
 }
 
 //_______________________________________________________________________packetChanged__________________________________________________________________
