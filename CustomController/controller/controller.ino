@@ -111,7 +111,7 @@ struct page {
 };
 
 // Decleration of array to store leg configs
-uint16_t LEG_OFFSET[6][3];
+int16_t LEG_OFFSET[6][3];
 int jointOffset = 0;
 int leg_selected;
 int joint_selected;
@@ -301,7 +301,7 @@ void setup() {
 
   state = STATE_HOME;
 
-	startup();
+	//startup();
 }
 
 //_______________________________________________________________________loop__________________________________________________________________
