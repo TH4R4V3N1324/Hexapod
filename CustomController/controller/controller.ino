@@ -47,7 +47,6 @@ enum Command : uint8_t {
   CMD_NONE = 0,
   CMD_SET_GAIT,
   CMD_SET_MODE,
-  CMD_ENTER_CONFIG,
   CMD_SET_CONFIG,
 	CMD_HOME_STANCE,
 	CMD_REQUEST_CONFIG
@@ -152,8 +151,8 @@ page LEG[LEG_ITEMS] = {
 };
 
 // Item information for Gait page
-enum Gaits {tripod, wave, ripple};
-Gaits activeGait = tripod; 
+enum Gaits {GAIT_TRIPOD, GAIT_RIPPLE, GAIT_WAVE, NUM_GAITS};
+Gaits activeGait = GAIT_TRIPOD; 
 const int GAIT_ITEMS = 3;
 page GAIT[GAIT_ITEMS] = {
 	{"Tripod", nullptr, STATE_NONE},
@@ -162,8 +161,8 @@ page GAIT[GAIT_ITEMS] = {
 };
 
 // Item information for Mode page
-enum Modes {strafe, normal, tilt};
-Modes activeMode = normal;
+enum Modes {MODE_NORMAL, MODE_STRAFE, MODE_TILT, MODE_CONFIG, NUM_MODES};
+Modes activeMode = MODE_NORMAL;
 const int MODE_ITEMS = 3;
 page MODE[MODE_ITEMS] = {
   {"Strafe", epd_bitmap_strafe_mode_icon, STATE_NONE},
@@ -363,7 +362,7 @@ void mainFSM() {
 			handleScrollAndSelect(MENU, MENU_ITEMS);
 			break;
 		case STATE_CONFIG:
-			if (!configStance) {controlPacket.command = CMD_ENTER_CONFIG; configStance = true;}
+			if (!configStance) {controlPacket.command = CMD_SET_MODE ; controlPacket.commandArgs[0] = MODE_CONFIG ; configStance = true;}
 			if ((encoderButtonZ1 != encoderButtonZ0) && (!encoderButtonZ0)) {leg_selected = item_selected;}
 			handleScrollAndSelect(CONFIG, CONFIG_ITEMS);
 			break;
