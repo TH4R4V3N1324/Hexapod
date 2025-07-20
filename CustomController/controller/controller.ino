@@ -709,8 +709,8 @@ void readStickData() {
   int y = (yCentered * 128L) / 2048;
 
   // Deadzone
-  if (abs(x) < 10) x = 0;
-  if (abs(y) < 10) y = 0;
+  if (abs(x) < 25) x = 0;
+  if (abs(y) < 25) y = 0;
 
 	controlPacket.joystick1X = constrain(x, -128, 127);
 	controlPacket.joystick1Y = constrain(y, -128, 127);
