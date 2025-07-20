@@ -52,6 +52,8 @@ enum Command : uint8_t {
 	CMD_REQUEST_CONFIG
 };
 
+// Define the data structure with no padding
+#pragma pack(push, 1)
 // Define ControlPacket struct
 struct ControlPacket {
   int16_t joystick1X;
@@ -66,6 +68,7 @@ struct HexPacket {
   int16_t legConfigs[3];
   int16_t currentHeight;
 };
+#pragma pack(pop)
 
 // Instances of packets
 ControlPacket controlPacket = {};
@@ -156,8 +159,8 @@ Gaits activeGait = GAIT_TRIPOD;
 const int GAIT_ITEMS = 3;
 page GAIT[GAIT_ITEMS] = {
 	{"Tripod", nullptr, STATE_NONE},
-	{"Wave", nullptr, STATE_NONE},
-	{"Ripple", nullptr, STATE_NONE}
+	{"Ripple", nullptr, STATE_NONE},
+	{"Wave", nullptr, STATE_NONE}
 };
 
 // Item information for Mode page
@@ -165,8 +168,8 @@ enum Modes {MODE_NORMAL, MODE_STRAFE, MODE_TILT, MODE_CONFIG, NUM_MODES};
 Modes activeMode = MODE_NORMAL;
 const int MODE_ITEMS = 3;
 page MODE[MODE_ITEMS] = {
-  {"Strafe", epd_bitmap_strafe_mode_icon, STATE_NONE},
 	{"Normal", epd_bitmap_normal_mode_icon, STATE_NONE},
+  {"Strafe", epd_bitmap_strafe_mode_icon, STATE_NONE},
 	{"Tilt", epd_bitmap_tilt_mode_icon, STATE_NONE}	
 };
 

@@ -18,6 +18,8 @@ enum Command : uint8_t {
   CMD_REQUEST_CONFIG
 };
 
+// Define the data structure with no padding
+#pragma pack(push, 1)
 // Define ControlPacket struct
 struct ControlPacket {
   int16_t joystick1X;
@@ -32,6 +34,7 @@ struct HexPacket {
   int16_t legConfigs[3];
   int16_t currentHeight;
 };
+#pragma pack(pop)
 
 // Instances of packets
 ControlPacket controlPacket = {};
@@ -49,7 +52,7 @@ void receiveEventEspNOW(const esp_now_recv_info_t *recv_info, const uint8_t *dat
   // Temporary holder for the incoming packet
   ControlPacket incomingPacket;
   memcpy(&incomingPacket, data, sizeof(ControlPacket));
-
+  
   if (packetChanged(incomingPacket, controlPacket)) {controlPacket = incomingPacket;}
 
   esp_now_send(controllerMAC, (uint8_t*)&hexPacket, sizeof(HexPacket));
