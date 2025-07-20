@@ -57,12 +57,20 @@ Before getting started, make sure you have the following installed:
 ### Dependencies
 - [Pimironi pico sdk](https://github.com/pimoroni/pimoroni-pico.git)
 
+Clone the repository into the desired location using the git bash terminal.
 ```bash
-# Example commands
 git clone https://github.com/TH4R4V3N1324/Hexapod.git
-cd Hexapod
-# Add more setup instructions as needed
 ```
+Using the Raspberry Pi Pico VSCode extension, import the Hexapod sub-folder by selecting it in the Location tab and clicking Import.
+
+<img width="942" height="592" alt="image" src="https://github.com/user-attachments/assets/354eea97-4b16-4b11-a991-5acd650c455d" />
+
+Once imported, you can build the project by selecting Compile Project from the Pico extension commands. This will generate a .uf2 firmware file inside the build directory.
+
+To flash the firmware to the Pimoroni Servo 2040, put the board into BOOTSEL mode (by holding the BOOT button and pressing RESET), then copy the .uf2 file to the mounted USB storage.
+
+Alternatively, you can enter BOOTSEL mode first, then simply use the Run Project command. This will automatically build and flash the firmware to the board—no manual file transfer required.
+
 
 ---
 
