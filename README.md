@@ -27,7 +27,7 @@ To achieve this, the software is structured around a set of well-defined classes
 
 - Move Class: Directly interfaces with the actuators or motors, translating high-level commands into specific movement instructions. It abstracts the hardware layer, allowing for easier adaptation across different platforms.
 
-- Animation Class: Manages time-based or sequential actions, such as scripted movements, LED patterns, or other user-defined behaviors that rely on timing and transitions.
+- Animation Class: Manages co-ordination of legs using the various gaits and modes to create walking and animation.
 
 ---
 
