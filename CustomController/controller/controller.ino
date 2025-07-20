@@ -219,9 +219,6 @@ int previousTime = 0;
 // Flag for if in config stance
 bool configStance = false;
 
-// Flag to check if data received from hex
-bool hexDataReceived = false;
-
 //_______________________________________________________________________sendData__________________________________________________________________
 // Sends data to Hexapod esp32 at regular intervals
 void sendData() {
@@ -234,9 +231,10 @@ void sendData() {
 
 //_______________________________________________________________________onHexDataReceived__________________________________________________________________
 void onHexDataReceived(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len){
+	static bool firstPacket = true;
 	if (len == sizeof(HexPacket)) {
     memcpy(&hexPacket, data, sizeof(HexPacket));
-		hexDataReceived = true;
+		if (firstPacket) {controlPacket.currentHeight = hexPacket.currentHeight; firstPacket = false;}
 	}
 }
 
