@@ -1,6 +1,6 @@
 # Hexapod
 
-This repository contains the complete design, control sodtware and documentation for a six-legged walking robot (hexapod). The project combines robotics, kinematics, embedded systems, and motion planning to create a stable and adaptable walking platform.
+This repository contains the complete design, control software and documentation for a six-legged walking robot (hexapod). The project combines robotics, kinematics, embedded systems, and motion planning to create a stable and adaptable walking platform.
 
 ---
 
