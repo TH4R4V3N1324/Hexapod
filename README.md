@@ -47,20 +47,23 @@ To achieve this, the software is structured around a set of well-defined classes
 
 Describe how to get your project running locally. Include prerequisites, dependencies, and step-by-step instructions.
 
-### Prerequisites
-Before getting started, make sure you have the following installed:
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [Pico SDK and cmake toolchain](https://github.com/raspberrypi/pico-sdk)
-- Raspberry Pi Pico VSCode Extension installed via the Extensions tab in VSCode
-- [Git](https://git-scm.com/)
-
-### Dependencies
-- [Pimironi pico sdk](https://github.com/pimoroni/pimoroni-pico.git)
-
 Clone the repository into the desired location using the git bash terminal.
 ```bash
 git clone https://github.com/TH4R4V3N1324/Hexapod.git
 ```
+
+### Hexapod
+Before getting started, make sure you have the following installed:
+
+#### Prerequisites
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [Pico SDK and cmake toolchain](https://github.com/raspberrypi/pico-sdk)
+- [Raspberry Pi Pico VSCode Extension](https://marketplace.visualstudio.com/items?itemName=raspberry-pi.raspberry-pi-pico)
+- [Git](https://git-scm.com/)
+
+#### Dependencies
+- [Pimironi pico sdk](https://github.com/pimoroni/pimoroni-pico.git)
+
 Using the Raspberry Pi Pico VSCode extension, import the Hexapod sub-folder by selecting it in the Location tab and clicking Import.
 
 <img width="942" height="592" alt="image" src="https://github.com/user-attachments/assets/354eea97-4b16-4b11-a991-5acd650c455d" />
@@ -71,6 +74,22 @@ To flash the firmware to the Pimoroni Servo 2040, put the board into BOOTSEL mod
 
 Alternatively, you can enter BOOTSEL mode first, then simply use the Run Project command. This will automatically build and flash the firmware to the board—no manual file transfer required.
 
+### Receiver & Controller
+
+#### Prerequisites
+- [Arduino IDE](https://www.arduino.cc/en/software)
+
+#### Dependencies
+- [Arduino-esp32](https://github.com/espressif/arduino-esp32.git)
+- [u8g2 library](https://github.com/olikraus/u8g2.git)
+
+Open the Arduino IDE and navigate to File>Preferences. In the Additional boards managaer URLs tab paste in the esp32 package URL:
+
+```bash
+https://espressif.github.io/arduino-esp32/package_esp32_index.json
+```
+
+The Arduino-esp32 boards package by Espressif Systems can then be installed through the boards manager. Before uploading the code to either the Receiver or Controller, the appropriate Board and COM Port needs to be selected under the Tools tab.
 
 ---
 
