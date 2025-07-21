@@ -9,6 +9,8 @@ This repository contains the complete design, control software and documentation
 - [About](#about)
 - [Features](#features)
 - [Installation](#installation)
+  - [Hexapod](#hexapod)
+  - [Receiver & Controller](#receiver--controller)
 - [Usage](#usage)
 
 ---
