@@ -61,37 +61,41 @@ Before getting started, make sure you have the following installed:
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [Pico SDK and cmake toolchain](https://github.com/raspberrypi/pico-sdk)
 - [Raspberry Pi Pico VSCode Extension](https://marketplace.visualstudio.com/items?itemName=raspberry-pi.raspberry-pi-pico)
-- [Git](https://git-scm.com/)
 
 #### Dependencies
 - [Pimironi pico sdk](https://github.com/pimoroni/pimoroni-pico.git)
 
-Using the Raspberry Pi Pico VSCode extension, import the Hexapod sub-folder by selecting it in the Location tab and clicking Import.
+Using the Raspberry Pi Pico VSCode extension, import the Hexapod sub-folder by selecting it in the **Location** tab, enabling **CMake-Tools** and clicking **Import**. 
 
-<img width="942" height="592" alt="image" src="https://github.com/user-attachments/assets/354eea97-4b16-4b11-a991-5acd650c455d" />
+<img width="941" height="602" alt="image" src="https://github.com/user-attachments/assets/8c47e7c1-295a-499b-b6f6-cfa090426399" />
 
-Once imported, you can build the project by selecting Compile Project from the Pico extension commands. This will generate a .uf2 firmware file inside the build directory.
+A selection box will appear at the top of the screen. From the list, choose the appropriate Pico compiler.
+
+<img width="609" height="139" alt="image" src="https://github.com/user-attachments/assets/6cdaf052-d8a2-43bf-9610-47753c51e325" />
+
+Once imported, you can build the project by selecting **Compile Project** from the Pico extension commands. This will generate a .uf2 firmware file inside the build directory.
 
 To flash the firmware to the Pimoroni Servo 2040, put the board into BOOTSEL mode (by holding the BOOT button and pressing RESET), then copy the .uf2 file to the mounted USB storage.
 
-Alternatively, you can enter BOOTSEL mode first, then simply use the Run Project command. This will automatically build and flash the firmware to the board—no manual file transfer required.
+Alternatively, you can enter BOOTSEL mode first, then simply use the **Run Project** command. This will automatically build and flash the firmware to the board, no manual file transfer required.
+
+<img width="173" height="45" alt="image" src="https://github.com/user-attachments/assets/cd616e4c-6d4b-4c53-86ff-5c158eb07fa7" />
 
 ### Receiver & Controller
 
 #### Prerequisites
-- [Arduino IDE](https://www.arduino.cc/en/software)
+- [PlatformIO VSCode Extension](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide)
 
 #### Dependencies
-- [Arduino-esp32](https://github.com/espressif/arduino-esp32.git)
 - [u8g2 library](https://github.com/olikraus/u8g2.git)
 
-Open the Arduino IDE and navigate to File>Preferences. In the Additional boards managaer URLs tab paste in the esp32 package URL:
+Using the PlatformIO extension in VS Code, select the **Open** option under the **Quick Access** panel to launch the PlatformIO Home page. From there, click **Open Project** and navigate to the appropriate sub-folder to import your project.
 
-```bash
-https://espressif.github.io/arduino-esp32/package_esp32_index.json
-```
+<img width="1267" height="654" alt="image" src="https://github.com/user-attachments/assets/aab1096a-94ee-453e-a0cc-c572583a5a59" />
 
-The Arduino-esp32 boards package by Espressif Systems can then be installed through the boards manager. Before uploading the code to either the Receiver or Controller, the appropriate Board and COM Port needs to be selected under the Tools tab.
+To build or upload the project to your ESP32 board, use the **Build** or **Upload** options available under the **Project Tasks** panel in the PlatformIO extension.
+
+<img width="391" height="490" alt="image" src="https://github.com/user-attachments/assets/9143a6cc-68e3-45dd-ba03-e871e0463958" />
 
 ---
 
