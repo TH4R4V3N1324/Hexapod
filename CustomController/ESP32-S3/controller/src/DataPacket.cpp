@@ -24,8 +24,11 @@ void DataPacket::onHexDataReceived(const uint8_t *mac, const uint8_t *data, int 
 			firstPacket = false;
 		}
 	}
+	dataPacket.sendData(); // Send control data back to Hexapod
 }
 
+
+// Initialize ESP-NOW
 void DataPacket::initializeESPNow() {
 	WiFi.mode(WIFI_STA);
 	esp_now_init();
