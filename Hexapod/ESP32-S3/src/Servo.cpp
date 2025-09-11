@@ -1,7 +1,5 @@
 #include "Servo.h"
-#include "Arduino.h"
 
-// Example safe GPIOs for 12 MCPWM and 6 LEDC servos
 static ServoConfig defaultServos[18] = {
     // MCPWM servos
     {4,  SERVO_MCPWM, {.mcpwm = {MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM0A, MCPWM_OPR_A}}},
@@ -30,7 +28,10 @@ Servo::Servo() {
     for (int i = 0; i < NUM_SERVOS; ++i) servos[i] = defaultServos[i];
 }
 
-// Initialize MCPWM for a specific servo
+/*
+@brief Initialize MCPWM for a specific servo
+@param cfg The ServoConfig for the servo to initialize
+*/
 void Servo::initMCPWM(const ServoConfig& cfg) {
     mcpwm_config_t pwm_config;
     pwm_config.frequency = 50;
@@ -42,7 +43,10 @@ void Servo::initMCPWM(const ServoConfig& cfg) {
     mcpwm_init(cfg.mcpwm.unit, cfg.mcpwm.timer, &pwm_config);
 }
 
-// Initialize LEDC for a specific servo
+/*
+@brief Initialize LEDC for a specific servo
+@param cfg The ServoConfig for the servo to initialize
+*/
 void Servo::initLEDC(const ServoConfig& cfg) {
     static bool timerConfigured = false;
     if (!timerConfigured) {
@@ -65,7 +69,10 @@ void Servo::initLEDC(const ServoConfig& cfg) {
     ledc_channel_config(&ledc_channel);
 }
 
-// Initialize all servos
+/*
+@brief Initialize all servos
+@note This function initializes both MCPWM and LEDC servos based on their configuration
+*/
 void Servo::init() {
     for (int i = 0; i < NUM_SERVOS; ++i) {
         if (servos[i].type == SERVO_MCPWM) initMCPWM(servos[i]);
@@ -73,7 +80,10 @@ void Servo::init() {
     }
 }
 
-// Disable a specific servo
+/*
+@brief Disable a specific servo
+@param servoNum The index of the servo to disable (0-17)
+*/
 void Servo::disable(int servoNum) {
     if (servoNum < 0 || servoNum >= NUM_SERVOS) return;
     if (servos[servoNum].type == SERVO_MCPWM) {
@@ -83,7 +93,11 @@ void Servo::disable(int servoNum) {
     }
 }
 
-// Set the angle for a specific servo
+/*
+@brief Set the angle of a specific servo
+@param servoNum The index of the servo to set (0-17)
+@param angle The target angle in degrees
+*/
 void Servo::setAngle(int servoNum, double angle) {
     if (servoNum < 0 || servoNum >= NUM_SERVOS) return;
     if (servos[servoNum].type == SERVO_MCPWM) {

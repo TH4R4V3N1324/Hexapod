@@ -10,7 +10,12 @@ HexPacket hexPacket;
 // MAC address of the controller
 uint8_t controllerMAC[6] = {0x80, 0x65, 0x99, 0xE9, 0x6F, 0x56};
 
-// Function to handle espNOW receive event (Arduino ESP32 signature)
+/*
+@brief Callback function to handle received ESP-NOW data
+@param mac The MAC address of the sender
+@param data The received data
+@param len The length of the received data
+*/
 static void receiveEventEspNOW(const uint8_t *mac, const uint8_t *data, int len) {
     if (len != sizeof(ControlPacket)) {
         Serial.println("Received ESP-NOW data size incorrect");
@@ -25,7 +30,9 @@ static void receiveEventEspNOW(const uint8_t *mac, const uint8_t *data, int len)
     SendHexData();
 }
 
-// Function to initialize ESP-NOW communication
+/*
+@brief Initialize ESP-NOW communication
+*/
 void initEspNow() {
     // Initialize WiFi in station mode
     WiFi.mode(WIFI_STA);
@@ -52,7 +59,12 @@ void initEspNow() {
     }
 }
 
-// Compare if two ControlPackets are different
+/*
+@brief Compare if two ControlPackets are different
+@param a The first ControlPacket
+@param b The second ControlPacket
+@return true if the packets are different, false otherwise
+*/
 bool controlPacketChanged(const ControlPacket& a, const ControlPacket& b) {
     return memcmp(&a, &b, sizeof(ControlPacket)) != 0;
 }
@@ -62,7 +74,11 @@ void SendHexData() {
     esp_now_send(controllerMAC, (uint8_t*)&hexPacket, sizeof(HexPacket));
 }
 
-// Returns true if the a ControlPacket command changes
+/*
+@brief Check if the command in the control packet has changed
+@return true if the command or its arguments have changed, false otherwise
+@note Updates the lastCommand and lastArgs if a change is detected
+*/
 bool CommandChanged() {
     bool changed = (controlPacket.command != lastCommand) ||
                    (controlPacket.commandArgs[0] != lastArgs[0]) ||
