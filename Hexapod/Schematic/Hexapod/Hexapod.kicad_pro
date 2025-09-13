@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 1.2,
-          "height": 1.8,
-          "width": 1.8
+          "drill": 0.8,
+          "height": 1.27,
+          "width": 2.54
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -48,40 +48,11 @@
         "silk_text_thickness": 0.1,
         "silk_text_upright": false,
         "zones": {
-          "min_clearance": 0.0
+          "min_clearance": 0.5
         }
       },
       "diff_pair_dimensions": [],
-      "drc_exclusions": [
-        [
-          "copper_edge_clearance|124609800|50951191|f623a0d3-e53f-492d-9453-4ea1ed010ce8|42e1e8a7-627a-4b8e-bc90-b73cb78aab9b",
-          ""
-        ],
-        [
-          "copper_edge_clearance|180109800|50951191|f623a0d3-e53f-492d-9453-4ea1ed010ce8|22b99b4a-a195-47e1-a166-ab29c9839588",
-          ""
-        ],
-        [
-          "hole_clearance|149449600|58635200|6659b2bf-b3e0-4152-96e2-5e0f4bcca707|bf465662-aac5-4375-8e49-9f5004f77d2c",
-          ""
-        ],
-        [
-          "hole_clearance|149449600|58635200|6659b2bf-b3e0-4152-96e2-5e0f4bcca707|e3874759-c585-41a9-9710-eb460564832b",
-          ""
-        ],
-        [
-          "hole_clearance|155549600|58635200|937d223d-086b-4044-94db-a62bc78e80f1|1c1a36fd-e16f-4a61-b494-c6860b4ed615",
-          ""
-        ],
-        [
-          "hole_clearance|155549600|58635200|937d223d-086b-4044-94db-a62bc78e80f1|41da87f7-9e71-4a31-8dd2-4015013a2b3b",
-          ""
-        ],
-        [
-          "silk_edge_clearance|121609800|51441381|8de367e1-78f5-4806-94f6-5a5d05cda08a|7778f944-4e6a-460a-b20e-1756edaa8d69",
-          ""
-        ]
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
@@ -434,7 +405,6 @@
       "bus_entry_needed": "error",
       "bus_to_bus_conflict": "error",
       "bus_to_net_conflict": "error",
-      "conflicting_netclasses": "error",
       "different_unit_footprint": "error",
       "different_unit_net": "error",
       "duplicate_reference": "error",
@@ -480,8 +450,8 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "hexControllerV2.kicad_pro",
-    "version": 1
+    "filename": "Hexapod.kicad_pro",
+    "version": 3
   },
   "net_settings": {
     "classes": [
@@ -496,6 +466,7 @@
         "microvia_drill": 0.1,
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2,
         "via_diameter": 0.6,
@@ -504,7 +475,7 @@
       }
     ],
     "meta": {
-      "version": 3
+      "version": 4
     },
     "net_colors": null,
     "netclass_assignments": null,
@@ -518,7 +489,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "hexControllerV2.step",
+      "step": "",
       "svg": "",
       "vrml": ""
     },
@@ -588,66 +559,12 @@
           "label": "Datasheet",
           "name": "Datasheet",
           "show": true
-        },
-        {
-          "group_by": false,
-          "label": "Arrow Price/Stock",
-          "name": "Arrow Price/Stock",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Height",
-          "name": "Height",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Manufacturer_Name",
-          "name": "Manufacturer_Name",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Manufacturer_Part_Number",
-          "name": "Manufacturer_Part_Number",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Mouser Part Number",
-          "name": "Mouser Part Number",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Mouser Price/Stock",
-          "name": "Mouser Price/Stock",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Arrow Part Number",
-          "name": "Arrow Part Number",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "Description",
-          "name": "Description",
-          "show": false
-        },
-        {
-          "group_by": false,
-          "label": "#",
-          "name": "${ITEM_NUMBER}",
-          "show": false
         }
       ],
       "filter_string": "",
       "group_symbols": true,
       "include_excluded_from_bom": true,
-      "name": "",
+      "name": "Default Editing",
       "sort_asc": true,
       "sort_field": "Reference"
     },
@@ -693,7 +610,7 @@
   },
   "sheets": [
     [
-      "c4fcfb45-7571-475c-8feb-53b009d404f4",
+      "7aa046be-e965-4cf7-9e01-671f07757caf",
       "Root"
     ]
   ],
