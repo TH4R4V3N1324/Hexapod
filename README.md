@@ -102,3 +102,74 @@ To build or upload the project to your ESP32 board, use the **Build** or **Uploa
 ## Usage
 
 Explain how to use the project. Provide code snippets, screenshots, or examples as helpful.
+
+# Ideas:
+# Use ROS2 for control
+<img width="475" height="585" alt="image" src="https://github.com/user-attachments/assets/5df6aec1-c747-4ea1-bb06-a8412053d7d5" />
+<img width="520" height="395" alt="image" src="https://github.com/user-attachments/assets/ef33b528-e2d2-4559-9521-a9967716f75a" />
+
+## Package Structure
+
+### 1. hexapod_description (URDF/Configuration)
+
+- Robot URDF model with leg geometry
+- Joint limits and physical parameters
+- Launch files for simulation and hardware
+
+### 2. hexapod_hardware_interface (Hardware Layer)
+
+#### Servo Controller Node: Interfaces with PCA9685 or direct PWM
+
+- Subscribes to: /joint_commands (JointState)
+- Publishes: /joint_states (JointState with feedback)
+- Service: /emergency_stop
+
+#### Sensor Manager Node: Aggregates all sensor data
+
+- Publishes: /imu/data (sensor_msgs/Imu)
+- Publishes: /power/status (custom PowerStatus msg)
+- Publishes: /leg_contact (custom LegContactArray msg)
+
+### 3. hexapod_kinematics (Computation Layer)
+
+#### IK/FK Solver Node: Your Calculate class logic
+- Service: /ik_solve (Vector3 → JointAngles)
+- Service: /fk_solve (JointAngles → Vector3)
+- Publishes: /leg_poses (geometry_msgs/PoseArray
+
+### 4. hexapod_gait_controller (Motion Planning)
+
+#### Gait Generator Node: Your Animation/Move logic
+
+- Subscribes to: /cmd_vel (Twist for velocity commands)
+- Subscribes to: /gait_mode (String: tripod/ripple/wave)
+- Publishes: /leg_trajectories (trajectory_msgs/JointTrajectory)
+- Action Server: /execute_gait for complex movements
+
+### 5. hexapod_control (High-Level Control)
+
+#### Behavior Manager Node: State machine (Normal/Strafe/Tilt/Config)
+
+- Subscribes to: /mode_command (custom ModeCommand)
+- Subscribes to: /joystick (sensor_msgs/Joy)
+- Publishes: /cmd_vel (Twist)
+- Service: /set_height, /home_stance
+
+#### Config Manager Node: Servo offset calibration
+
+- Reads/writes to parameter server
+- Service: /save_config, /load_config
+
+### 6. hexapod_teleop (User Interface)
+
+#### Joystick Node: Replaces your ESP-NOW controller
+
+- Uses joy_node from ROS2
+- Publishes: /joystick (sensor_msgs/Joy)
+
+#### Web Interface Node: Optional dashboard
+
+- rqt plugins or custom web interface
+- Monitor battery, IMU, leg contact
+
+# Use Isaac sim for simulation
