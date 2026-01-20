@@ -103,8 +103,8 @@ To build or upload the project to your ESP32 board, use the **Build** or **Uploa
 
 Explain how to use the project. Provide code snippets, screenshots, or examples as helpful.
 
-# Ideas
-- Use ROS2 for control
+# Ideas:
+# Use ROS2 for control
 <img width="475" height="585" alt="image" src="https://github.com/user-attachments/assets/5df6aec1-c747-4ea1-bb06-a8412053d7d5" />
 <img width="520" height="395" alt="image" src="https://github.com/user-attachments/assets/ef33b528-e2d2-4559-9521-a9967716f75a" />
 
@@ -172,4 +172,4 @@ Explain how to use the project. Provide code snippets, screenshots, or examples 
 - rqt plugins or custom web interface
 - Monitor battery, IMU, leg contact
 
-
+# Use Isaac sim for simulation
