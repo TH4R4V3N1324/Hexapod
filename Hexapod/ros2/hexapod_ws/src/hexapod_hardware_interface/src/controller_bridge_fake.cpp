@@ -3,7 +3,7 @@
 
 using ControllerRaw = hexapod_interfaces::msg::ControllerRaw;
 
-class ControllerBridge : public rclcpp::Node{public: ControllerBridge() : Node("controller_bridge"){
+class ControllerBridge : public rclcpp::Node{public: ControllerBridge() : Node("controller_bridge_fake"){
     controller_data_publisher = this->create_publisher<ControllerRaw>("controller_raw_data", 10);
     timer = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&ControllerBridge::publish_controller_data, this));
 }    

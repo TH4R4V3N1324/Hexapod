@@ -7,7 +7,7 @@ using std_srvs::srv::SetBool;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-class ServoController : public rclcpp::Node{public: ServoController() : Node("servo_controller"){
+class ServoController : public rclcpp::Node{public: ServoController() : Node("servo_controller_fake"){
     joint_command_subscriber = this->create_subscription<JointState>("joint_commands", 10, std::bind(&ServoController::handle_joint_command, this, _1));
     joint_state_publisher = this->create_publisher<JointState>("joint_states", 10);
     emergency_stop_service = this->create_service<std_srvs::srv::SetBool>("emergency_stop", std::bind(&ServoController::handle_emergency_stop, this, _1, _2));

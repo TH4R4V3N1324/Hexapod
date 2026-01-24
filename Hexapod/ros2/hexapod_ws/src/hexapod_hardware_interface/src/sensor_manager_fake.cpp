@@ -7,7 +7,7 @@ using Imu = sensor_msgs::msg::Imu;
 using LegContact = hexapod_interfaces::msg::LegContact;
 using PowerStatus = hexapod_interfaces::msg::PowerStatus;
 
-class SensorManager : public rclcpp::Node{public: SensorManager() : Node("sensor_manager"){
+class SensorManager : public rclcpp::Node{public: SensorManager() : Node("sensor_manager_fake"){
     imu_publisher = this->create_publisher<Imu>("imu_data", 10);
     leg_contact_publisher = this->create_publisher<LegContact>("leg_contact_data", 10);
     power_status_publisher = this->create_publisher<PowerStatus>("power_status_data", 10);
