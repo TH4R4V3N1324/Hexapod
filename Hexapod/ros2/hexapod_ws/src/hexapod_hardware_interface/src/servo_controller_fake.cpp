@@ -13,12 +13,12 @@ class ServoController : public rclcpp::Node{public: ServoController() : Node("se
     emergency_stop_service = this->create_service<std_srvs::srv::SetBool>("emergency_stop", std::bind(&ServoController::handle_emergency_stop, this, _1, _2));
     timer = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&ServoController::publish_joint_state, this));
     joint_names = {
-        "coxa_1", "femur_1", "tibia_1",
-        "coxa_2", "femur_2", "tibia_2",
-        "coxa_3", "femur_3", "tibia_3",
-        "coxa_4", "femur_4", "tibia_4",
-        "coxa_5", "femur_5", "tibia_5",
-        "coxa_6", "femur_6", "tibia_6"
+        "leg1_coxa_joint", "leg1_femur_joint", "leg1_tibia_joint",
+        "leg2_coxa_joint", "leg2_femur_joint", "leg2_tibia_joint",
+        "leg3_coxa_joint", "leg3_femur_joint", "leg3_tibia_joint",
+        "leg4_coxa_joint", "leg4_femur_joint", "leg4_tibia_joint",
+        "leg5_coxa_joint", "leg5_femur_joint", "leg5_tibia_joint",
+        "leg6_coxa_joint", "leg6_femur_joint", "leg6_tibia_joint"
     };
     joint_positions.resize(joint_names.size(), 0.0);
 }    
@@ -31,13 +31,14 @@ private:
     std::vector<double> joint_positions;
 public:
     void handle_joint_command(const JointState::SharedPtr msg){
-        // Process incoming joint command and control servos
         RCLCPP_INFO(this->get_logger(), "Received joint command with %zu positions", msg->position.size());
-        // Publish current joint states as a response (mocked here)
-        auto joint_state_msg = JointState();
-        joint_state_msg.name = msg->name;
-        joint_state_msg.position = msg->position; // In real implementation, this would be the actual servo positions
-        joint_state_publisher->publish(joint_state_msg);
+
+        // Save the new positions to use in the timer
+        if(msg->position.size() == joint_positions.size()){
+            joint_positions = msg->position;
+        } else {
+            RCLCPP_WARN(this->get_logger(), "Joint command size mismatch!");
+        }
     }
 
     void handle_emergency_stop(const std::shared_ptr<SetBool::Request> request,
@@ -56,11 +57,10 @@ public:
     }
 
     void publish_joint_state(){
-        // Periodically publish joint states (mocked here)
         auto joint_state_msg = JointState();
         joint_state_msg.header.stamp = this->now();
         joint_state_msg.name = joint_names;
-        joint_state_msg.position = joint_positions;
+        joint_state_msg.position = joint_positions; // uses latest commanded positions
         joint_state_publisher->publish(joint_state_msg);
         RCLCPP_DEBUG(this->get_logger(), "Published joint states.");
     }
