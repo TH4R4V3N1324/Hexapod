@@ -135,6 +135,7 @@ Explain how to use the project. Provide code snippets, screenshots, or examples 
 #### IK/FK Solver Node: Your Calculate class logic
 - Service: /ik_solve (Vector3 → JointAngles)
 - Service: /fk_solve (JointAngles → Vector3)
+- Subscribes to: /joint_states (JointState)
 - Publishes: /leg_poses (geometry_msgs/PoseArray
 
 ### 4. hexapod_gait_controller (Motion Planning)
