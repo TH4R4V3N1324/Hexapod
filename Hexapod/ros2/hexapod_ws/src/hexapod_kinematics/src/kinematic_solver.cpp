@@ -8,9 +8,7 @@ using std::placeholders::_2;
 using IKSolver = hexapod_interfaces::srv::IKSolver;
 using FKSolver = hexapod_interfaces::srv::FKSolver;
 
-class KinematicSolver : public rclcpp::Node{
-public: 
-    KinematicSolver() : Node("kinematic_solver"){
+class KinematicSolver : public rclcpp::Node{public: KinematicSolver() : Node("kinematic_solver"){
         ik_service = this->create_service<IKSolver>("ik_solver", std::bind(&KinematicSolver::handle_ik_request, this, _1, _2));
         fk_service = this->create_service<FKSolver>("fk_solver", std::bind(&KinematicSolver::handle_fk_request, this, _1, _2));
     }    
