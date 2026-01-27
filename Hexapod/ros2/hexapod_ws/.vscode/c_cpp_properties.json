@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "/opt/ros/jazzy/include/**",
                 "${workspaceFolder}/install/**",
-                "${workspaceFolder}/src/**"
+                "${workspaceFolder}/src/**",
+                "/usr/include/eigen3"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",
